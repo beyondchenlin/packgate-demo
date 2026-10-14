@@ -99,8 +99,8 @@ body {
   margin: auto;
   width: min(980px, 94vw);
   /* always leave stage padding so titlebar never sticks to / past viewport top */
-  height: min(700px, calc(100dvh - 2 * clamp(28px, 5vh, 56px)));
-  max-height: calc(100dvh - 56px);
+  height: min(740px, calc(100dvh - 2 * clamp(24px, 4vh, 48px)));
+  max-height: calc(100dvh - 48px);
 }
 
 /* traffic + drag strip — always visible above sidebar/main */
@@ -130,51 +130,53 @@ body {
 .shell-body { display: flex; flex: 1; min-height: 0; }
 
 .sidebar {
-  width: 196px;
+  width: 188px;
   flex: none;
   background: var(--bg-sidebar);
   border-right: 0.5px solid var(--border);
   display: flex;
   flex-direction: column;
-  /* top padding so Logo + first item never hug / clip under chrome */
-  padding: 12px 8px 12px;
+  padding: 8px 6px 8px;
   min-height: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
+  /* one screen, no scrollbar — density tuned to fit all nav */
+  overflow: hidden;
 }
 .sidebar.collapsed { width: 56px; }
 
 .sb-brand {
-  display: flex; align-items: center; gap: 8px;
-  padding: 4px 8px 12px;
-  font-weight: 650; font-size: 13px; color: var(--fg-1);
+  display: flex; align-items: center; gap: 7px;
+  padding: 2px 8px 8px;
+  font-weight: 650; font-size: 12.5px; color: var(--fg-1);
   flex: none;
   flex-shrink: 0;
 }
 .sb-brand .logo {
-  width: 22px; height: 22px; border-radius: 6px;
+  width: 18px; height: 18px; border-radius: 5px;
   background: var(--action); color: #fff;
   display: flex; align-items: center; justify-content: center;
-  font-size: 11px; font-weight: 700;
+  font-size: 10px; font-weight: 700;
 }
 
 .sb-group {
-  font-size: 10px; font-weight: 600; letter-spacing: 0.04em;
-  color: var(--fg-3); padding: 8px 10px 4px; text-transform: uppercase;
+  font-size: 9.5px; font-weight: 600; letter-spacing: 0.04em;
+  color: var(--fg-3); padding: 5px 8px 2px; text-transform: uppercase;
+  flex: none;
 }
 .sb-item {
-  display: flex; align-items: center; gap: 8px;
+  display: flex; align-items: center; gap: 6px;
   width: 100%; border: 0; background: transparent;
-  text-align: left; font: inherit; font-size: 12.5px;
-  color: var(--fg-2); padding: 7px 10px; border-radius: 8px;
+  text-align: left; font: inherit; font-size: 12px;
+  color: var(--fg-2); padding: 3.5px 8px; border-radius: 6px;
   cursor: default;
+  flex: none;
+  line-height: 1.25;
 }
 .sb-item:hover { background: rgba(0,0,0,0.04); color: var(--fg-1); }
 .theme-dark .sb-item:hover { background: rgba(255,255,255,0.05); }
 .sb-item[data-on="true"] {
   background: var(--bg-selected); color: var(--fg-1); font-weight: 560;
 }
-.sb-item svg { width: 15px; height: 15px; flex: none; opacity: 0.75; }
+.sb-item svg { width: 13px; height: 13px; flex: none; opacity: 0.75; }
 .sb-item[data-on="true"] svg { opacity: 1; color: var(--action); }
 .sb-item .badge {
   margin-left: auto; font-size: 10.5px; color: var(--fg-3);
@@ -202,17 +204,18 @@ body {
 }
 .sb-item.core[data-on="true"] svg { color: var(--action); opacity: 1; }
 .sb-core-block {
-  margin: 0 0 8px;
-  padding: 0 0 8px;
+  margin: 0 0 4px;
+  padding: 0 0 4px;
   border-bottom: 0.5px solid var(--border);
   flex: none;
 }
 
 .sb-foot {
   margin-top: auto;
-  padding-top: 8px;
+  padding-top: 4px;
   border-top: 0.5px solid var(--border);
-  display: flex; flex-direction: column; gap: 2px;
+  display: flex; flex-direction: column; gap: 1px;
+  flex: none;
 }
 
 .main {

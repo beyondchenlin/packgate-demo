@@ -86,11 +86,9 @@ function Shell() {
         ? '本地能力包'
         : nav === 'composite'
           ? '云 + 本地入口'
-          : nav === 'pi-chat'
-            ? '对话'
-            : nav === 'playground'
-              ? 'LocalAI 风格试跑'
-              : undefined
+          : nav === 'playground'
+            ? 'LocalAI 风格试跑'
+            : undefined
 
   const showAdd =
     nav === 'providers' ||
@@ -133,7 +131,6 @@ function Shell() {
             </div>
 
             <div className="sb-core-block">
-              <div className="sb-group">PackGate</div>
               {CORE_NAV.map((item) => {
                 const Icon = ICONS[item.icon] ?? Store
                 return (
@@ -241,7 +238,7 @@ function Shell() {
           <div className="main">
             <header className="page-header">
               <h1>{title}</h1>
-              {subtitle && <span className="sub">{subtitle}</span>}
+              {subtitle && subtitle !== title && <span className="sub">{subtitle}</span>}
               <div className="spacer" />
 
               <button
