@@ -221,7 +221,7 @@ function Shell() {
             </div>
           </aside>
 
-          <div className="main">
+          <div className={`main${nav === 'pi-chat' ? ' is-agent-chat' : ''}`}>
             <header className="page-header">
               <h1>{title}</h1>
               {subtitle && subtitle !== title && <span className="sub">{subtitle}</span>}
