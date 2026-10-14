@@ -111,13 +111,10 @@ function Shell() {
 
   return (
     <div
-      className={`desktop-bg flex h-full min-h-screen w-full items-center justify-center p-6 sm:p-10 ${
-        theme === 'dark' ? 'theme-dark' : ''
-      }`}
+      className={`desktop-bg ${theme === 'dark' ? 'theme-dark' : ''}`}
     >
       <div
-        className={`window-shell relative w-[min(980px,94vw)] ${theme === 'dark' ? 'theme-dark' : ''}`}
-        style={{ height: 'min(700px, 88vh)' }}
+        className={`window-shell relative ${theme === 'dark' ? 'theme-dark' : ''}`}
       >
         <div className="win-chrome">
           <div className="traffic">

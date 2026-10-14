@@ -52,15 +52,31 @@
 }
 
 * { box-sizing: border-box; }
-html, body, #root { height: 100%; margin: 0; }
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
 body {
   font: 13px/1.45 var(--font-sans);
   color: var(--fg-1);
   background: #c8c9ce;
   -webkit-font-smoothing: antialiased;
+  /* allow the desktop stage to scroll rather than clip the window top */
+  overflow: auto;
 }
 
 .desktop-bg {
+  box-sizing: border-box;
+  min-height: 100%;
+  min-height: 100dvh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* safe: if window+padding taller than viewport, pin to start (no top crop) */
+  align-items: safe center;
+  justify-content: safe center;
+  padding: clamp(28px, 5vh, 56px) clamp(16px, 3vw, 40px);
   background: linear-gradient(165deg, #c5c6cb 0%, #d2d3d8 50%, #c9cacf 100%);
 }
 .theme-dark.desktop-bg,
@@ -69,19 +85,27 @@ body {
 }
 
 .window-shell {
+  box-sizing: border-box;
   background: var(--bg-app);
   border-radius: 12px;
+  /* clip only for rounded corners — chrome/sidebar stay inside flex flow */
   overflow: hidden;
   box-shadow:
     0 24px 64px rgba(0,0,0,0.2),
     0 0 0 0.5px rgba(0,0,0,0.08);
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
+  margin: auto;
+  width: min(980px, 94vw);
+  /* always leave stage padding so titlebar never sticks to / past viewport top */
+  height: min(700px, calc(100dvh - 2 * clamp(28px, 5vh, 56px)));
+  max-height: calc(100dvh - 56px);
 }
 
-/* traffic + drag strip */
+/* traffic + drag strip — always visible above sidebar/main */
 .win-chrome {
-  height: 36px;
+  height: 38px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -89,6 +113,9 @@ body {
   background: var(--bg-sidebar);
   border-bottom: 0.5px solid var(--border);
   flex: none;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
 }
 .traffic { display: flex; gap: 7px; }
 .traffic i { width: 11px; height: 11px; border-radius: 50%; }
@@ -109,14 +136,20 @@ body {
   border-right: 0.5px solid var(--border);
   display: flex;
   flex-direction: column;
-  padding: 8px 8px 10px;
+  /* top padding so Logo + first item never hug / clip under chrome */
+  padding: 12px 8px 12px;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 .sidebar.collapsed { width: 56px; }
 
 .sb-brand {
   display: flex; align-items: center; gap: 8px;
-  padding: 6px 8px 10px;
+  padding: 4px 8px 12px;
   font-weight: 650; font-size: 13px; color: var(--fg-1);
+  flex: none;
+  flex-shrink: 0;
 }
 .sb-brand .logo {
   width: 22px; height: 22px; border-radius: 6px;
@@ -169,9 +202,10 @@ body {
 }
 .sb-item.core[data-on="true"] svg { color: var(--action); opacity: 1; }
 .sb-core-block {
-  margin: 2px 0 8px;
-  padding: 2px 0 8px;
+  margin: 0 0 8px;
+  padding: 0 0 8px;
   border-bottom: 0.5px solid var(--border);
+  flex: none;
 }
 
 .sb-foot {
