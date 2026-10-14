@@ -9,14 +9,10 @@ const ROWS = [
 export function AuthView() {
   const { toast } = useToast()
   return (
-    <div className="page">
-      <div className="page-head">
-        <h1>授权中心</h1>
-        <p>订阅当作供应商使用</p>
-      </div>
-      <div className="card">
+    <div className="content">
+      <div className="list-card">
         {ROWS.map(([name, st]) => (
-          <div key={name} className="row">
+          <div key={name} className="list-row">
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 560 }}>{name}</div>
               <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>{st}</div>

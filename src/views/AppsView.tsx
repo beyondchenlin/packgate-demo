@@ -10,15 +10,14 @@ export function AppsView() {
     { id: '4', name: 'OpenCode', ver: '未安装', vis: false },
   ])
   return (
-    <div className="page">
-      <div className="page-head">
-        <h1>应用</h1>
-        <p>安装、升级、是否显示</p>
+    <div className="content">
+      <div className="toolbar" style={{padding:0,marginBottom:10}}>
+        <div className="spacer" />
         <button type="button" className="btn" onClick={() => toast('全部升级')}>全部升级</button>
       </div>
-      <div className="card">
+      <div className="list-card">
         {rows.map((a) => (
-          <div key={a.id} className="row">
+          <div key={a.id} className="list-row">
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 560 }}>{a.name}</div>
               <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>{a.ver}</div>

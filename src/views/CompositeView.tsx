@@ -9,15 +9,14 @@ const ROWS = [
 export function CompositeView() {
   const { toast } = useToast()
   return (
-    <div className="page">
-      <div className="page-head">
-        <h1>组合模型</h1>
-        <p>一个入口，背后是云模型与本地 Pack</p>
+    <div className="content">
+      <div className="toolbar" style={{padding:0,marginBottom:10}}>
+        <div className="spacer" />
         <button type="button" className="btn primary" onClick={() => toast('新建组合')}>新建</button>
       </div>
-      <div className="card">
+      <div className="list-card">
         {ROWS.map(([name, desc]) => (
-          <div key={name} className="row">
+          <div key={name} className="list-row">
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 560 }}>{name}</div>
               <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>{desc}</div>

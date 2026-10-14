@@ -8,15 +8,14 @@ export function PromptsView() {
     { id: '2', name: '严苛 Code Review', on: false },
   ])
   return (
-    <div className="page">
-      <div className="page-head">
-        <h1>提示词</h1>
-        <p>按工具分别维护</p>
+    <div className="content">
+      <div className="toolbar" style={{padding:0,marginBottom:10}}>
+        <div className="spacer" />
         <button type="button" className="btn primary" onClick={() => toast('新建')}>新建</button>
       </div>
-      <div className="card">
+      <div className="list-card">
         {rows.map((r) => (
-          <div key={r.id} className="row">
+          <div key={r.id} className="list-row">
             <div style={{ flex: 1, fontWeight: 560 }}>{r.name}</div>
             <button
               type="button"

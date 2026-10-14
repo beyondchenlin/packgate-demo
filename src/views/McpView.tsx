@@ -11,16 +11,15 @@ export function McpView() {
   const { toast } = useToast()
   const [rows] = useState(SEED)
   return (
-    <div className="page">
-      <div className="page-head">
-        <h1>MCP</h1>
-        <p>添加一次，按工具勾选同步</p>
+    <div className="content">
+      <div className="toolbar" style={{padding:0,marginBottom:10}}>
+        <div className="spacer" />
         <button type="button" className="btn" onClick={() => toast('导入')}>导入</button>
         <button type="button" className="btn primary" onClick={() => toast('添加')}>添加</button>
       </div>
-      <div className="card">
+      <div className="list-card">
         {rows.map((r) => (
-          <div key={r.id} className="row">
+          <div key={r.id} className="list-row">
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 560 }}>{r.name}</div>
               <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>{r.apps.join(' · ')}</div>

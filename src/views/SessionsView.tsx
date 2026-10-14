@@ -11,14 +11,10 @@ export function SessionsView() {
   const { toast } = useToast()
   const [rows, setRows] = useState(ROWS)
   return (
-    <div className="page">
-      <div className="page-head">
-        <h1>会话</h1>
-        <p>历史与花费</p>
-      </div>
-      <div className="card">
+    <div className="content">
+      <div className="list-card">
         {rows.map((r) => (
-          <div key={r.id} className="row">
+          <div key={r.id} className="list-row">
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontWeight: 560 }}>{r.title}</div>
               <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>{r.agent} · {r.meta}</div>

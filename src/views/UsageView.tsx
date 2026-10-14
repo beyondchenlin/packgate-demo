@@ -17,10 +17,9 @@ export function UsageView() {
   const { toast } = useToast()
   const [tab, setTab] = useState<'quota' | 'log'>('quota')
   return (
-    <div className="page">
-      <div className="page-head">
-        <h1>用量</h1>
-        <p>额度与请求</p>
+    <div className="content">
+      <div className="toolbar" style={{padding:0,marginBottom:10}}>
+        <div className="spacer" />
         <div className="seg">
           <button type="button" data-on={tab==='quota'} onClick={() => setTab('quota')}>额度</button>
           <button type="button" data-on={tab==='log'} onClick={() => setTab('log')}>请求</button>
@@ -28,9 +27,9 @@ export function UsageView() {
         <button type="button" className="btn ghost" onClick={() => toast('已导出 CSV')}>导出</button>
       </div>
       {tab === 'quota' ? (
-        <div className="card">
+        <div className="list-card">
           {QUOTAS.map((q) => (
-            <div key={q.name} className="row">
+            <div key={q.name} className="list-row">
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 560 }}>{q.name}</div>
                 <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>{q.detail}</div>
@@ -43,9 +42,9 @@ export function UsageView() {
           ))}
         </div>
       ) : (
-        <div className="card">
+        <div className="list-card">
           {LOGS.map((r, i) => (
-            <button key={i} type="button" className="row" style={{ width: '100%', border: 0, background: 'transparent', cursor: 'default', textAlign: 'left' }} onClick={() => toast(r.model)}>
+            <button key={i} type="button" className="list-row" style={{ width: '100%', border: 0, background: 'transparent', cursor: 'default', textAlign: 'left' }} onClick={() => toast(r.model)}>
               <span className="mono muted" style={{ width: 44 }}>{r.t}</span>
               <span style={{ flex: 1 }}>{r.agent} · {r.model}</span>
               <span className="muted">{r.cost}</span>

@@ -13,14 +13,10 @@ export function PackMarketView() {
   const { toast } = useToast()
   const [rows, setRows] = useState(PACKS)
   return (
-    <div className="page">
-      <div className="page-head">
-        <h1>Pack</h1>
-        <p>预制重型本地能力，装好就能被路由成目标。</p>
-      </div>
-      <div className="card">
+    <div className="content">
+      <div className="list-card">
         {rows.map((p) => (
-          <div key={p.id} className="row">
+          <div key={p.id} className="list-row">
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontWeight: 560 }}>{p.name}</div>
               <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>

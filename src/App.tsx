@@ -1,204 +1,276 @@
 import { useState } from 'react'
-import { ChevronDown, Settings } from 'lucide-react'
+import {
+  AppWindow,
+  BookOpen,
+  History,
+  KeyRound,
+  Package,
+  Puzzle,
+  Route,
+  Server,
+  Settings,
+  Sparkles,
+  BarChart3,
+  Store,
+} from 'lucide-react'
 import { ToastProvider, useToast } from './lib/toast'
 import {
-  MORE_NAV,
+  APPS,
+  EXTRA_NAV,
+  GLOBAL_NAV,
   NAV_LABEL,
-  PRIMARY_NAV,
-  PROFILES,
   type AgentId,
   type NavId,
-  type ProfileId,
 } from './lib/types'
-import { AgentsView } from './views/AgentsView'
 import { ProvidersView } from './views/ProvidersView'
 import { RoutingView } from './views/RoutingView'
-import { GatewayView } from './views/GatewayView'
 import { PackMarketView } from './views/PackMarketView'
-import { UsageView } from './views/UsageView'
-import { SessionsView } from './views/SessionsView'
 import { McpView } from './views/McpView'
 import { SkillsView } from './views/SkillsView'
+import { PromptsView } from './views/PromptsView'
+import { SessionsView } from './views/SessionsView'
+import { AuthView } from './views/AuthView'
+import { UsageView } from './views/UsageView'
+import { AppsView } from './views/AppsView'
+import { GatewayView } from './views/GatewayView'
+import { SettingsView } from './views/SettingsView'
 import { PluginsView } from './views/PluginsView'
 import { LibraryView } from './views/LibraryView'
-import { PromptsView } from './views/PromptsView'
-import { AuthView } from './views/AuthView'
-import { AppsView } from './views/AppsView'
 import { CompositeView } from './views/CompositeView'
-import { SettingsView } from './views/SettingsView'
+
+const ICONS: Record<string, typeof Route> = {
+  mcp: Server,
+  skills: Sparkles,
+  prompts: BookOpen,
+  sessions: History,
+  auth: KeyRound,
+  usage: BarChart3,
+  routing: Route,
+  packs: Store,
+  gateway: Package,
+  apps: AppWindow,
+  settings: Settings,
+  plugins: Puzzle,
+}
 
 function Shell() {
   const { toast } = useToast()
-  const [nav, setNav] = useState<NavId>('routing')
-  const [gatewayOn, setGatewayOn] = useState(true)
-  const [agent, setAgent] = useState<AgentId>('claude-code')
-  const [profile, setProfile] = useState<ProfileId>('default')
-  const [moreOpen, setMoreOpen] = useState(false)
-  const [profOpen, setProfOpen] = useState(false)
+  const [nav, setNav] = useState<NavId>('providers')
+  const [app, setApp] = useState<AgentId>('claude-code')
+  const [proxyOn, setProxyOn] = useState(true)
+  const [theme, setTheme] = useState<'light' | 'dark'>('light')
+  const [addSignal, setAddSignal] = useState(0)
 
   const go = (id: NavId) => {
     setNav(id)
-    setMoreOpen(false)
     toast(NAV_LABEL[id])
   }
 
-  const inMore = MORE_NAV.some((x) => x.id === nav)
+  const title =
+    nav === 'providers'
+      ? APPS.find((a) => a.id === app)?.label ?? 'PackGate'
+      : NAV_LABEL[nav]
+  const subtitle = nav === 'providers' ? '供应商' : undefined
+
+  const showAdd =
+    nav === 'providers' || nav === 'mcp' || nav === 'skills' || nav === 'prompts'
 
   return (
-    <div className="desktop-bg flex h-full min-h-screen w-full items-center justify-center p-6 sm:p-12">
+    <div
+      className={`desktop-bg flex h-full min-h-screen w-full items-center justify-center p-6 sm:p-10 ${
+        theme === 'dark' ? 'theme-dark' : ''
+      }`}
+    >
       <div
-        className="window-shell relative flex w-[min(960px,92vw)] flex-col"
-        style={{ height: 'min(680px, 86vh)' }}
-        onClick={() => {
-          setMoreOpen(false)
-          setProfOpen(false)
-        }}
+        className={`window-shell relative w-[min(980px,94vw)] ${theme === 'dark' ? 'theme-dark' : ''}`}
+        style={{ height: 'min(700px, 88vh)' }}
       >
-        <header className="titlebar" onClick={(e) => e.stopPropagation()}>
+        <div className="win-chrome">
           <div className="traffic">
             <i className="r" />
             <i className="y" />
             <i className="g" />
           </div>
-          <span className="brand">PackGate</span>
+          <span className="title">PackGate</span>
+        </div>
 
-          <nav className="topnav">
-            {PRIMARY_NAV.map((item) => (
+        <div className="shell-body">
+          <aside className="sidebar">
+            <div className="sb-brand">
+              <span className="logo">P</span>
+              PackGate
+            </div>
+
+            <div className="sb-group">应用</div>
+            {APPS.map((a) => (
               <button
-                key={item.id}
+                key={a.id}
                 type="button"
-                data-on={nav === item.id}
-                onClick={() => go(item.id)}
+                className="sb-item"
+                data-on={nav === 'providers' && app === a.id}
+                onClick={() => {
+                  setApp(a.id)
+                  setNav('providers')
+                  toast(a.label)
+                }}
               >
-                {item.label}
+                <span
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: 99,
+                    background: a.color,
+                    flex: 'none',
+                  }}
+                />
+                {a.label}
               </button>
             ))}
-            <div className="relative">
+
+            <div className="sb-group">扩展</div>
+            {EXTRA_NAV.map((item) => {
+              const Icon = ICONS[item.icon] ?? Route
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  className="sb-item"
+                  data-on={nav === item.id}
+                  onClick={() => go(item.id)}
+                >
+                  <Icon strokeWidth={1.6} />
+                  {item.label}
+                </button>
+              )
+            })}
+
+            <div className="sb-group">功能</div>
+            {GLOBAL_NAV.map((item) => {
+              const Icon = ICONS[item.icon] ?? Route
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  className="sb-item"
+                  data-on={nav === item.id}
+                  onClick={() => go(item.id)}
+                >
+                  <Icon strokeWidth={1.6} />
+                  {item.label}
+                  {item.id === 'usage' && (
+                    <span className="badge">$12.4</span>
+                  )}
+                </button>
+              )
+            })}
+
+            <div className="sb-foot">
               <button
                 type="button"
-                data-on={inMore}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setMoreOpen((v) => !v)
-                  setProfOpen(false)
-                }}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}
+                className="sb-item"
+                data-on={nav === 'apps'}
+                onClick={() => go('apps')}
               >
-                更多
-                <ChevronDown style={{ width: 12, height: 12, opacity: 0.6 }} />
+                <AppWindow strokeWidth={1.6} />
+                应用
               </button>
-              {moreOpen && (
-                <div
-                  className="more-menu"
-                  style={{ left: 0, right: 'auto', minWidth: 140 }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {MORE_NAV.map((item) => (
-                    <button key={item.id} type="button" onClick={() => go(item.id)}>
-                      {item.label}
-                    </button>
-                  ))}
-                </div>
-              )}
+              <button
+                type="button"
+                className="sb-item"
+                data-on={nav === 'settings'}
+                onClick={() => go('settings')}
+              >
+                <Settings strokeWidth={1.6} />
+                设置
+              </button>
             </div>
-          </nav>
+          </aside>
 
-          <div className="relative">
-            <button
-              type="button"
-              className="btn ghost"
-              style={{ fontSize: 12, padding: '4px 8px' }}
-              onClick={(e) => {
-                e.stopPropagation()
-                setProfOpen((v) => !v)
-                setMoreOpen(false)
-              }}
-            >
-              {PROFILES.find((p) => p.id === profile)?.label}
-              <ChevronDown style={{ width: 12, height: 12, opacity: 0.5 }} />
-            </button>
-            {profOpen && (
-              <div className="more-menu" onClick={(e) => e.stopPropagation()}>
-                {PROFILES.map((p) => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => {
-                      setProfile(p.id)
-                      setProfOpen(false)
-                      toast(`方案 · ${p.label}`)
-                    }}
-                  >
-                    {p.label}
-                  </button>
-                ))}
-              </div>
+          <div className="main">
+            <header className="page-header">
+              <h1>{title}</h1>
+              {subtitle && <span className="sub">{subtitle}</span>}
+              <div className="spacer" />
+
+              {/* Proxy 开关 — CC Switch 本地路由气质 */}
+              <button
+                type="button"
+                className="btn ghost"
+                style={{ fontSize: 12 }}
+                onClick={() => {
+                  setProxyOn((v) => {
+                    const n = !v
+                    toast(n ? 'Proxy / 本地路由已开' : 'Proxy 已关')
+                    return n
+                  })
+                }}
+                title="本地路由 Proxy"
+              >
+                <span
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: 99,
+                    background: proxyOn ? 'var(--route)' : 'var(--fg-3)',
+                  }}
+                />
+                Proxy {proxyOn ? '开' : '关'}
+              </button>
+
+              {showAdd && (
+                <button
+                  type="button"
+                  className="btn primary"
+                  onClick={() => {
+                    if (nav === 'providers') setAddSignal((n) => n + 1)
+                    else toast(`添加 ${NAV_LABEL[nav]}`)
+                  }}
+                >
+                  + 添加{nav === 'providers' ? '供应商' : NAV_LABEL[nav]}
+                </button>
+              )}
+
+              <button
+                type="button"
+                className="btn icon"
+                title="设置"
+                onClick={() => go('settings')}
+              >
+                <Settings style={{ width: 16, height: 16 }} strokeWidth={1.6} />
+              </button>
+            </header>
+
+            {nav === 'providers' && (
+              <ProvidersView
+                agent={app}
+                onAgentChange={setApp}
+                proxyOn={proxyOn}
+                addSignal={addSignal}
+              />
+            )}
+            {nav === 'routing' && <RoutingView agent={app} />}
+            {nav === 'packs' && <PackMarketView />}
+            {nav === 'mcp' && <McpView />}
+            {nav === 'skills' && <SkillsView />}
+            {nav === 'prompts' && <PromptsView />}
+            {nav === 'sessions' && <SessionsView />}
+            {nav === 'auth' && <AuthView />}
+            {nav === 'usage' && <UsageView />}
+            {nav === 'apps' && <AppsView />}
+            {nav === 'gateway' && <GatewayView on={proxyOn} />}
+            {nav === 'plugins' && <PluginsView />}
+            {nav === 'library' && <LibraryView />}
+            {nav === 'composite' && <CompositeView />}
+            {nav === 'settings' && (
+              <SettingsView
+                theme={theme}
+                onThemeChange={setTheme}
+                lang="zh"
+                onLangChange={() => toast('语言')}
+              />
             )}
           </div>
-
-          <button
-            type="button"
-            className="btn ghost"
-            style={{ fontSize: 12, padding: '4px 8px' }}
-            onClick={() => {
-              setGatewayOn((v) => {
-                const n = !v
-                toast(n ? '网关 · :3425' : '网关已关')
-                return n
-              })
-            }}
-          >
-            <span
-              style={{
-                width: 6,
-                height: 6,
-                borderRadius: 99,
-                background: gatewayOn ? '#189a58' : '#b9b9c2',
-                display: 'inline-block',
-              }}
-            />
-            {gatewayOn ? ':3425' : '关'}
-          </button>
-
-          <button
-            type="button"
-            className="icon-btn"
-            title="设置"
-            onClick={() => go('settings')}
-          >
-            <Settings style={{ width: 15, height: 15 }} strokeWidth={1.6} />
-          </button>
-        </header>
-
-        <main className="relative min-h-0 flex-1 overflow-hidden">
-          {nav === 'agents' && (
-            <AgentsView agent={agent} onAgentChange={setAgent} />
-          )}
-          {nav === 'providers' && (
-            <ProvidersView agent={agent} onAgentChange={setAgent} />
-          )}
-          {nav === 'routing' && <RoutingView agent={agent} />}
-          {nav === 'gateway' && <GatewayView on={gatewayOn} />}
-          {nav === 'packs' && <PackMarketView />}
-          {nav === 'usage' && <UsageView />}
-          {nav === 'sessions' && <SessionsView />}
-          {nav === 'mcp' && <McpView />}
-          {nav === 'skills' && <SkillsView />}
-          {nav === 'plugins' && <PluginsView />}
-          {nav === 'library' && <LibraryView />}
-          {nav === 'prompts' && <PromptsView />}
-          {nav === 'auth' && <AuthView />}
-          {nav === 'apps' && <AppsView />}
-          {nav === 'composite' && <CompositeView />}
-          {nav === 'settings' && (
-            <SettingsView
-              theme="light"
-              onThemeChange={() => toast('主题（Demo）')}
-              lang="zh"
-              onLangChange={() => toast('语言（Demo）')}
-            />
-          )}
-        </main>
+        </div>
       </div>
     </div>
   )
