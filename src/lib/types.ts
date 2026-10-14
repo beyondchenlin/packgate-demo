@@ -35,10 +35,10 @@ export const APPS: { id: AgentId; label: string; color: string }[] = [
 ]
 
 /** PackGate 核心：侧栏一级 */
-export const CORE_NAV: { id: NavId; label: string; icon: string; hint: string }[] = [
-  { id: 'pi-chat', label: 'Pi 对话', icon: 'pi', hint: '主页' },
-  { id: 'packs', label: 'Pack 市场', icon: 'packs', hint: '核心' },
-  { id: 'composite', label: '组合模型', icon: 'composite', hint: '核心' },
+export const CORE_NAV: { id: NavId; label: string; icon: string }[] = [
+  { id: 'pi-chat', label: 'PackGate', icon: 'pi' },
+  { id: 'packs', label: 'Pack 市场', icon: 'packs' },
+  { id: 'composite', label: '组合模型', icon: 'composite' },
 ]
 
 export const GLOBAL_NAV: { id: NavId; label: string; icon: string }[] = [
@@ -59,7 +59,7 @@ export const NAV_LABEL: Record<NavId, string> = {
   providers: '供应商',
   routing: '路由图',
   packs: 'Pack 市场',
-  'pi-chat': 'Pi 对话',
+  'pi-chat': 'PackGate',
   playground: '本地试跑',
   mcp: 'MCP',
   skills: 'Skills',

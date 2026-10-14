@@ -87,7 +87,7 @@ function Shell() {
         : nav === 'composite'
           ? '云 + 本地入口'
           : nav === 'pi-chat'
-            ? '内置 Pi Agent'
+            ? '对话'
             : nav === 'playground'
               ? 'LocalAI 风格试跑'
               : undefined
@@ -135,6 +135,27 @@ function Shell() {
               PackGate
             </div>
 
+            <div className="sb-core-block">
+              <div className="sb-group">PackGate</div>
+              {CORE_NAV.map((item) => {
+                const Icon = ICONS[item.icon] ?? Store
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className="sb-item core"
+                    data-on={nav === item.id}
+                    onClick={() => go(item.id)}
+                  >
+                    <Icon strokeWidth={1.7} />
+                    {item.label}
+                  </button>
+                )
+              })}
+            </div>
+
+            
+
             <div className="sb-group">应用</div>
             {APPS.map((a) => (
               <button
@@ -160,26 +181,6 @@ function Shell() {
                 {a.label}
               </button>
             ))}
-
-            <div className="sb-core-block">
-              <div className="sb-group">PackGate</div>
-              {CORE_NAV.map((item) => {
-                const Icon = ICONS[item.icon] ?? Store
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    className="sb-item core"
-                    data-on={nav === item.id}
-                    onClick={() => go(item.id)}
-                  >
-                    <Icon strokeWidth={1.7} />
-                    {item.label}
-                    <span className="core-mark">{item.hint}</span>
-                  </button>
-                )
-              })}
-            </div>
 
             <div className="sb-group">扩展</div>
             {EXTRA_NAV.map((item) => {

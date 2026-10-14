@@ -169,9 +169,8 @@ body {
 }
 .sb-item.core[data-on="true"] svg { color: var(--action); opacity: 1; }
 .sb-core-block {
-  margin: 4px 0 6px;
-  padding: 4px 0;
-  border-top: 0.5px solid var(--border);
+  margin: 2px 0 8px;
+  padding: 2px 0 8px;
   border-bottom: 0.5px solid var(--border);
 }
 
