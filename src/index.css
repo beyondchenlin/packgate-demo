@@ -188,8 +188,7 @@ body {
 
 
 .sb-item.core {
-  font-weight: 560;
-  color: var(--fg-1);
+  /* same weight/color as 应用 list items */
 }
 .sb-item.core .core-mark {
   margin-left: auto;
