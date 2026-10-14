@@ -13,6 +13,8 @@ import {
   Sparkles,
   BarChart3,
   Store,
+  MessageSquare,
+  FlaskConical,
 } from 'lucide-react'
 import { ToastProvider, useToast } from './lib/toast'
 import {
@@ -39,6 +41,8 @@ import { SettingsView } from './views/SettingsView'
 import { PluginsView } from './views/PluginsView'
 import { LibraryView } from './views/LibraryView'
 import { CompositeView } from './views/CompositeView'
+import { PiChatView } from './views/PiChatView'
+import { PlaygroundView } from './views/PlaygroundView'
 
 const ICONS: Record<string, typeof Route> = {
   mcp: Server,
@@ -50,6 +54,8 @@ const ICONS: Record<string, typeof Route> = {
   routing: Route,
   packs: Store,
   composite: Layers,
+  pi: MessageSquare,
+  play: FlaskConical,
   gateway: Package,
   apps: AppWindow,
   settings: Settings,
@@ -80,7 +86,11 @@ function Shell() {
         ? '本地能力包'
         : nav === 'composite'
           ? '云 + 本地入口'
-          : undefined
+          : nav === 'pi-chat'
+            ? '内置 Pi Agent'
+            : nav === 'playground'
+              ? 'LocalAI 风格试跑'
+              : undefined
 
   const showAdd =
     nav === 'providers' ||
@@ -296,6 +306,8 @@ function Shell() {
             {nav === 'routing' && <RoutingView agent={app} />}
             {nav === 'packs' && <PackMarketView />}
             {nav === 'composite' && <CompositeView />}
+            {nav === 'pi-chat' && <PiChatView />}
+            {nav === 'playground' && <PlaygroundView />}
             {nav === 'mcp' && <McpView />}
             {nav === 'skills' && <SkillsView />}
             {nav === 'prompts' && <PromptsView />}

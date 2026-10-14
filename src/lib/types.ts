@@ -2,6 +2,8 @@ export type NavId =
   | 'providers'
   | 'routing'
   | 'packs'
+  | 'pi-chat'
+  | 'playground'
   | 'mcp'
   | 'skills'
   | 'prompts'
@@ -32,13 +34,14 @@ export const APPS: { id: AgentId; label: string; color: string }[] = [
   { id: 'opencode', label: 'OpenCode', color: '#64748b' },
 ]
 
-/** PackGate 核心：侧栏一级，应用列表正下方 */
+/** PackGate 核心：侧栏一级 */
 export const CORE_NAV: { id: NavId; label: string; icon: string; hint: string }[] = [
   { id: 'packs', label: 'Pack 市场', icon: 'packs', hint: '核心' },
   { id: 'composite', label: '组合模型', icon: 'composite', hint: '核心' },
+  { id: 'pi-chat', label: 'Pi 对话', icon: 'pi', hint: '内置' },
+  { id: 'playground', label: '本地试跑', icon: 'play', hint: '试跑' },
 ]
 
-/** 侧栏全局页 — 对标 CC Switch */
 export const GLOBAL_NAV: { id: NavId; label: string; icon: string }[] = [
   { id: 'mcp', label: 'MCP', icon: 'mcp' },
   { id: 'skills', label: 'Skills', icon: 'skills' },
@@ -48,7 +51,6 @@ export const GLOBAL_NAV: { id: NavId; label: string; icon: string }[] = [
   { id: 'usage', label: '用量统计', icon: 'usage' },
 ]
 
-/** 次级扩展 */
 export const EXTRA_NAV: { id: NavId; label: string; icon: string }[] = [
   { id: 'routing', label: '路由图', icon: 'routing' },
   { id: 'gateway', label: '网关', icon: 'gateway' },
@@ -58,6 +60,8 @@ export const NAV_LABEL: Record<NavId, string> = {
   providers: '供应商',
   routing: '路由图',
   packs: 'Pack 市场',
+  'pi-chat': 'Pi 对话',
+  playground: '本地试跑',
   mcp: 'MCP',
   skills: 'Skills',
   prompts: '提示词',
@@ -87,3 +91,13 @@ export const AGENTS = APPS.map((a) => ({
   ...a,
   installed: a.id !== 'opencode',
 }))
+
+export const COMPOSITE_OPTIONS = [
+  '组合 · 视频多模态',
+  '组合 · 爬取研究',
+  '组合 · 省钱编码',
+  'Pack · 本地 TTS',
+  'Pack · 本地 ASR',
+  'Pack · ReachFlow',
+  '本地 · Agent 自带额度',
+]

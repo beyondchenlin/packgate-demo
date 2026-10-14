@@ -22,7 +22,7 @@ export function SettingsView({
   onLangChange: (l: 'zh' | 'en') => void
 }) {
   const { toast } = useToast()
-  const [tab, setTab] = useState<(typeof TABS)[number][0]>('general')
+  const [tab, setTab] = useState<(typeof TABS)[number][0]>('about')
   return (
     <div className="content">
       <div style={{ display: 'flex', gap: 14 }}>
@@ -52,44 +52,115 @@ export function SettingsView({
               <div className="list-row">
                 <span style={{ flex: 1 }}>主题</span>
                 <div className="seg">
-                  <button type="button" data-on={theme==='light'} onClick={() => onThemeChange('light')}>浅色</button>
-                  <button type="button" data-on={theme==='dark'} onClick={() => onThemeChange('dark')}>深色</button>
+                  <button type="button" data-on={theme === 'light'} onClick={() => onThemeChange('light')}>
+                    浅色
+                  </button>
+                  <button type="button" data-on={theme === 'dark'} onClick={() => onThemeChange('dark')}>
+                    深色
+                  </button>
                 </div>
               </div>
               <div className="list-row">
                 <span style={{ flex: 1 }}>语言</span>
                 <div className="seg">
-                  <button type="button" data-on={lang==='zh'} onClick={() => onLangChange('zh')}>中文</button>
-                  <button type="button" data-on={lang==='en'} onClick={() => onLangChange('en')}>EN</button>
+                  <button type="button" data-on={lang === 'zh'} onClick={() => onLangChange('zh')}>
+                    中文
+                  </button>
+                  <button type="button" data-on={lang === 'en'} onClick={() => onLangChange('en')}>
+                    EN
+                  </button>
                 </div>
               </div>
             </>
           )}
           {tab === 'routing' && (
             <>
-              <div className="list-row"><span style={{ flex: 1 }}>监听</span><span className="mono muted">127.0.0.1:3425</span></div>
-              <div className="list-row"><span style={{ flex: 1 }}>故障转移冷却</span><button type="button" className="btn ghost" onClick={() => toast('30s')}>30s</button></div>
+              <div className="list-row">
+                <span style={{ flex: 1 }}>监听</span>
+                <span className="mono muted">127.0.0.1:3425</span>
+              </div>
+              <div className="list-row">
+                <span style={{ flex: 1 }}>故障转移冷却</span>
+                <button type="button" className="btn ghost" onClick={() => toast('30s')}>
+                  30s
+                </button>
+              </div>
             </>
           )}
           {tab === 'network' && (
-            <div className="list-row"><span style={{ flex: 1 }}>HTTP 代理</span><button type="button" className="btn" onClick={() => toast('配置')}>配置</button></div>
+            <>
+              <div className="list-row">
+                <span style={{ flex: 1 }}>HTTP 代理</span>
+                <button type="button" className="btn" onClick={() => toast('配置')}>
+                  配置
+                </button>
+              </div>
+              <div className="list-row" style={{ alignItems: 'flex-start' }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 560 }}>OpenAI 兼容接口</div>
+                  <div className="muted" style={{ fontSize: 12, marginTop: 4, lineHeight: 1.5 }}>
+                    对外开放，供外部项目调用。Base URL：
+                    <span className="mono"> http://127.0.0.1:3425/v1</span>
+                    ，Key 任意（如 packgate）。兼容 Chat Completions / Models。
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() => toast('已复制 Base URL')}
+                >
+                  复制
+                </button>
+              </div>
+            </>
           )}
           {tab === 'privacy' && (
-            <div className="list-row"><span style={{ flex: 1 }}>发现订阅账号</span><button type="button" className="btn" onClick={() => toast('切换')}>开</button></div>
+            <div className="list-row">
+              <span style={{ flex: 1 }}>发现订阅账号</span>
+              <button type="button" className="btn" onClick={() => toast('切换')}>
+                开
+              </button>
+            </div>
           )}
           {tab === 'sync' && (
             <>
-              <div className="list-row"><span style={{ flex: 1 }}>导出备份</span><button type="button" className="btn" onClick={() => toast('导出')}>导出</button></div>
-              <div className="list-row"><span style={{ flex: 1 }}>WebDAV</span><button type="button" className="btn" onClick={() => toast('配置')}>配置</button></div>
+              <div className="list-row">
+                <span style={{ flex: 1 }}>导出备份</span>
+                <button type="button" className="btn" onClick={() => toast('导出')}>
+                  导出
+                </button>
+              </div>
+              <div className="list-row">
+                <span style={{ flex: 1 }}>WebDAV</span>
+                <button type="button" className="btn" onClick={() => toast('配置')}>
+                  配置
+                </button>
+              </div>
             </>
           )}
           {tab === 'about' && (
-            <div className="list-row">
-              <div>
-                <div style={{ fontWeight: 560 }}>PackGate Demo</div>
-                <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>MIT · 壳子对标 CC Switch</div>
+            <>
+              <div className="list-row">
+                <div>
+                  <div style={{ fontWeight: 560 }}>PackGate Demo</div>
+                  <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>
+                    MIT · 壳子对标 CC Switch · 核心为 Pack + 组合模型
+                  </div>
+                </div>
               </div>
-            </div>
+              <div className="list-row" style={{ alignItems: 'flex-start' }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 560 }}>开放 API</div>
+                  <div className="muted" style={{ fontSize: 12, marginTop: 4, lineHeight: 1.55 }}>
+                    提供 <strong>OpenAI 兼容</strong> 本地接口，外部 Agent / 项目可直接对接：
+                    <br />
+                    <span className="mono">OPENAI_BASE_URL=http://127.0.0.1:3425/v1</span>
+                    <br />
+                    <span className="mono">OPENAI_API_KEY=packgate</span>
+                  </div>
+                </div>
+              </div>
+            </>
           )}
         </div>
       </div>
