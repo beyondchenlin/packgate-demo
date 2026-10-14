@@ -148,6 +148,33 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+
+.sb-item.core {
+  font-weight: 560;
+  color: var(--fg-1);
+}
+.sb-item.core .core-mark {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--action);
+  background: var(--action-soft);
+  padding: 1px 6px;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+}
+.sb-item.core[data-on="true"] {
+  background: var(--action-soft);
+  box-shadow: inset 2px 0 0 var(--action);
+}
+.sb-item.core[data-on="true"] svg { color: var(--action); opacity: 1; }
+.sb-core-block {
+  margin: 4px 0 6px;
+  padding: 4px 0;
+  border-top: 0.5px solid var(--border);
+  border-bottom: 0.5px solid var(--border);
+}
+
 .sb-foot {
   margin-top: auto;
   padding-top: 8px;

@@ -4,6 +4,7 @@ import {
   BookOpen,
   History,
   KeyRound,
+  Layers,
   Package,
   Puzzle,
   Route,
@@ -16,6 +17,7 @@ import {
 import { ToastProvider, useToast } from './lib/toast'
 import {
   APPS,
+  CORE_NAV,
   EXTRA_NAV,
   GLOBAL_NAV,
   NAV_LABEL,
@@ -47,6 +49,7 @@ const ICONS: Record<string, typeof Route> = {
   usage: BarChart3,
   routing: Route,
   packs: Store,
+  composite: Layers,
   gateway: Package,
   apps: AppWindow,
   settings: Settings,
@@ -55,7 +58,7 @@ const ICONS: Record<string, typeof Route> = {
 
 function Shell() {
   const { toast } = useToast()
-  const [nav, setNav] = useState<NavId>('providers')
+  const [nav, setNav] = useState<NavId>('packs')
   const [app, setApp] = useState<AgentId>('claude-code')
   const [proxyOn, setProxyOn] = useState(true)
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
@@ -70,10 +73,31 @@ function Shell() {
     nav === 'providers'
       ? APPS.find((a) => a.id === app)?.label ?? 'PackGate'
       : NAV_LABEL[nav]
-  const subtitle = nav === 'providers' ? '供应商' : undefined
+  const subtitle =
+    nav === 'providers'
+      ? '供应商'
+      : nav === 'packs'
+        ? '本地能力包'
+        : nav === 'composite'
+          ? '云 + 本地入口'
+          : undefined
 
   const showAdd =
-    nav === 'providers' || nav === 'mcp' || nav === 'skills' || nav === 'prompts'
+    nav === 'providers' ||
+    nav === 'mcp' ||
+    nav === 'skills' ||
+    nav === 'prompts' ||
+    nav === 'packs' ||
+    nav === 'composite'
+
+  const addLabel =
+    nav === 'providers'
+      ? '供应商'
+      : nav === 'packs'
+        ? 'Pack'
+        : nav === 'composite'
+          ? '组合'
+          : NAV_LABEL[nav]
 
   return (
     <div
@@ -126,6 +150,26 @@ function Shell() {
                 {a.label}
               </button>
             ))}
+
+            <div className="sb-core-block">
+              <div className="sb-group">PackGate</div>
+              {CORE_NAV.map((item) => {
+                const Icon = ICONS[item.icon] ?? Store
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className="sb-item core"
+                    data-on={nav === item.id}
+                    onClick={() => go(item.id)}
+                  >
+                    <Icon strokeWidth={1.7} />
+                    {item.label}
+                    <span className="core-mark">{item.hint}</span>
+                  </button>
+                )
+              })}
+            </div>
 
             <div className="sb-group">扩展</div>
             {EXTRA_NAV.map((item) => {
@@ -192,7 +236,6 @@ function Shell() {
               {subtitle && <span className="sub">{subtitle}</span>}
               <div className="spacer" />
 
-              {/* Proxy 开关 — CC Switch 本地路由气质 */}
               <button
                 type="button"
                 className="btn ghost"
@@ -223,10 +266,12 @@ function Shell() {
                   className="btn primary"
                   onClick={() => {
                     if (nav === 'providers') setAddSignal((n) => n + 1)
+                    else if (nav === 'packs') toast('安装 Pack（Demo）')
+                    else if (nav === 'composite') toast('新建组合模型（Demo）')
                     else toast(`添加 ${NAV_LABEL[nav]}`)
                   }}
                 >
-                  + 添加{nav === 'providers' ? '供应商' : NAV_LABEL[nav]}
+                  + 添加{addLabel}
                 </button>
               )}
 
@@ -250,6 +295,7 @@ function Shell() {
             )}
             {nav === 'routing' && <RoutingView agent={app} />}
             {nav === 'packs' && <PackMarketView />}
+            {nav === 'composite' && <CompositeView />}
             {nav === 'mcp' && <McpView />}
             {nav === 'skills' && <SkillsView />}
             {nav === 'prompts' && <PromptsView />}
@@ -260,7 +306,6 @@ function Shell() {
             {nav === 'gateway' && <GatewayView on={proxyOn} />}
             {nav === 'plugins' && <PluginsView />}
             {nav === 'library' && <LibraryView />}
-            {nav === 'composite' && <CompositeView />}
             {nav === 'settings' && (
               <SettingsView
                 theme={theme}

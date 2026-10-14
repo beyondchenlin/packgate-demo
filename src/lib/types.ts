@@ -32,6 +32,12 @@ export const APPS: { id: AgentId; label: string; color: string }[] = [
   { id: 'opencode', label: 'OpenCode', color: '#64748b' },
 ]
 
+/** PackGate 核心：侧栏一级，应用列表正下方 */
+export const CORE_NAV: { id: NavId; label: string; icon: string; hint: string }[] = [
+  { id: 'packs', label: 'Pack 市场', icon: 'packs', hint: '核心' },
+  { id: 'composite', label: '组合模型', icon: 'composite', hint: '核心' },
+]
+
 /** 侧栏全局页 — 对标 CC Switch */
 export const GLOBAL_NAV: { id: NavId; label: string; icon: string }[] = [
   { id: 'mcp', label: 'MCP', icon: 'mcp' },
@@ -42,17 +48,16 @@ export const GLOBAL_NAV: { id: NavId; label: string; icon: string }[] = [
   { id: 'usage', label: '用量统计', icon: 'usage' },
 ]
 
-/** PackGate 扩展入口，放在侧栏应用区下方 */
+/** 次级扩展 */
 export const EXTRA_NAV: { id: NavId; label: string; icon: string }[] = [
   { id: 'routing', label: '路由图', icon: 'routing' },
-  { id: 'packs', label: 'Pack', icon: 'packs' },
   { id: 'gateway', label: '网关', icon: 'gateway' },
 ]
 
 export const NAV_LABEL: Record<NavId, string> = {
   providers: '供应商',
   routing: '路由图',
-  packs: 'Pack',
+  packs: 'Pack 市场',
   mcp: 'MCP',
   skills: 'Skills',
   prompts: '提示词',
@@ -78,7 +83,6 @@ export const STRATEGIES: { id: StrategyId; label: string; helper: string }[] = [
   { id: 'manual', label: '手动', helper: '固定打到选中模型。' },
 ]
 
-// keep AGENTS alias for older views
 export const AGENTS = APPS.map((a) => ({
   ...a,
   installed: a.id !== 'opencode',
