@@ -1,20 +1,29 @@
 import type { ReactNode } from 'react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
-  GripVertical,
-  Plus,
-  Pencil,
-  Copy,
-  Gauge,
-  BarChart3,
-  Trash2,
-  Loader2,
+  ArrowDown,
+  ArrowUp,
   Check,
+  Copy,
   ExternalLink,
+  Gauge,
+  Loader2,
+  MoreHorizontal,
+  Pencil,
+  Play,
+  Plus,
+  Power,
+  Star,
+  Terminal,
+  Trash2,
+  BarChart3,
+  ListPlus,
+  ListMinus,
 } from 'lucide-react'
 import { useToast } from '../lib/toast'
 import { AGENTS, type AgentId } from '../lib/types'
 
+type Mode = 'direct' | 'route' | 'stack'
 type Provider = {
   id: string
   name: string
@@ -25,18 +34,20 @@ type Provider = {
   category: 'official' | 'third_party' | 'custom'
   usage?: { label: string; detail: string }
   latency?: number | null
+  inStack?: boolean
+  isDefault?: boolean
 }
 
-const PRESETS: Provider[] = [
+const SEED: Provider[] = [
   {
     id: 'anthropic',
     name: 'Anthropic 官方',
-    notes: 'Claude Pro / Max 订阅额度',
+    notes: 'Claude Pro / Max 订阅',
     endpoint: 'https://api.anthropic.com',
     iconBg: '#d97706',
     iconLabel: 'A',
     category: 'official',
-    usage: { label: '额度', detail: '剩余约 68%' },
+    usage: { label: '额度', detail: '5h 剩余 68%' },
     latency: 186,
   },
   {
@@ -49,6 +60,8 @@ const PRESETS: Provider[] = [
     category: 'official',
     usage: { label: '用量', detail: '本月 $12.4' },
     latency: 142,
+    inStack: true,
+    isDefault: true,
   },
   {
     id: 'deepseek',
@@ -60,6 +73,7 @@ const PRESETS: Provider[] = [
     category: 'third_party',
     usage: { label: '余额', detail: '¥86.20' },
     latency: 98,
+    inStack: true,
   },
   {
     id: 'glm',
@@ -82,6 +96,7 @@ const PRESETS: Provider[] = [
     category: 'third_party',
     usage: { label: '额度', detail: '剩余 42%' },
     latency: 210,
+    inStack: true,
   },
   {
     id: 'siliconflow',
@@ -96,11 +111,23 @@ const PRESETS: Provider[] = [
   },
 ]
 
+const PRESET_ADD = [
+  'Anthropic',
+  'OpenAI',
+  'DeepSeek',
+  '智谱 GLM',
+  'Moonshot',
+  'SiliconFlow',
+  'OpenRouter',
+  '火山方舟',
+  '阿里云百炼',
+  '自定义…',
+]
+
 function latencyColor(ms: number | null | undefined) {
   if (ms == null) return 'text-[#9c9ca8]'
-  if (ms < 300) return 'text-[#1f7a4a]'
-  if (ms < 500) return 'text-[#a16207]'
-  if (ms < 800) return 'text-[#c2410c]'
+  if (ms < 120) return 'text-[#0f7a3f]'
+  if (ms < 200) return 'text-[#a16207]'
   return 'text-[#b91c1c]'
 }
 
@@ -114,325 +141,593 @@ export function ProvidersView({
   gatewayOn: boolean
 }) {
   const { toast } = useToast()
-  const [items, setItems] = useState(PRESETS)
-  const [currentId, setCurrentId] = useState('anthropic')
-  const [testingId, setTestingId] = useState<string | null>(null)
-  const [hoveredId, setHoveredId] = useState<string | null>(null)
-  const [dragFrom, setDragFrom] = useState<number | null>(null)
+  const [mode, setMode] = useState<Mode>('route')
+  const [list, setList] = useState(SEED)
+  const [activeId, setActiveId] = useState('deepseek')
+  const [menuId, setMenuId] = useState<string | null>(null)
+  const [testing, setTesting] = useState<string | null>(null)
+  const [addOpen, setAddOpen] = useState(false)
+  const [editId, setEditId] = useState<string | null>(null)
+  const [usageCfgId, setUsageCfgId] = useState<string | null>(null)
+  const [filter, setFilter] = useState('')
 
-  const onDrop = (toIndex: number) => {
-    if (dragFrom == null || dragFrom === toIndex) {
-      setDragFrom(null)
-      return
+  const shown = useMemo(() => {
+    const q = filter.trim().toLowerCase()
+    let rows = list
+    if (mode === 'stack') {
+      // stack mode: members first
+      rows = [...list].sort((a, b) => Number(b.inStack) - Number(a.inStack))
     }
-    setItems((prev) => {
+    if (!q) return rows
+    return rows.filter(
+      (p) =>
+        p.name.toLowerCase().includes(q) ||
+        p.notes.toLowerCase().includes(q) ||
+        p.endpoint.toLowerCase().includes(q),
+    )
+  }, [list, filter, mode])
+
+  const move = (id: string, dir: -1 | 1) => {
+    setList((prev) => {
+      const i = prev.findIndex((p) => p.id === id)
+      const j = i + dir
+      if (i < 0 || j < 0 || j >= prev.length) return prev
       const next = [...prev]
-      const [moved] = next.splice(dragFrom, 1)
-      next.splice(toIndex, 0, moved)
+      ;[next[i], next[j]] = [next[j], next[i]]
       return next
     })
-    setDragFrom(null)
-    toast('已调整供应商顺序')
+    toast(dir < 0 ? '已上移（故障转移队列）' : '已下移（故障转移队列）')
   }
 
-  const runTest = (p: Provider) => {
-    if (testingId) return
-    setTestingId(p.id)
-    toast(`测速中：${p.name}…`)
-    window.setTimeout(() => {
-      const ms = 60 + Math.floor(Math.random() * 420)
-      setItems((prev) =>
+  const enable = (p: Provider) => {
+    if (mode === 'direct') {
+      setActiveId(p.id)
+      toast(`已启用 ${p.name}（直连）`)
+    } else if (mode === 'route') {
+      setActiveId(p.id)
+      toast(`路由到此处：${p.name}`)
+    } else {
+      setList((prev) =>
+        prev.map((x) =>
+          x.id === p.id ? { ...x, inStack: true } : x,
+        ),
+      )
+      toast(`已加入聚合：${p.name}`)
+    }
+  }
+
+  const test = (p: Provider) => {
+    setTesting(p.id)
+    setMenuId(null)
+    setTimeout(() => {
+      const ms = 80 + Math.floor(Math.random() * 180)
+      setList((prev) =>
         prev.map((x) => (x.id === p.id ? { ...x, latency: ms } : x)),
       )
-      setTestingId(null)
-      toast(`${p.name} 延迟 ${ms} ms`)
+      setTesting(null)
+      toast(`${p.name} 连通 ${ms} ms`)
     }, 900)
   }
 
+  const remove = (p: Provider) => {
+    setList((prev) => prev.filter((x) => x.id !== p.id))
+    setMenuId(null)
+    toast(`已删除 ${p.name}`)
+  }
+
+  const duplicate = (p: Provider) => {
+    const id = `${p.id}-copy-${Date.now().toString(36).slice(-4)}`
+    setList((prev) => [
+      ...prev,
+      { ...p, id, name: `${p.name} 副本`, isDefault: false },
+    ])
+    setMenuId(null)
+    toast(`已复制 ${p.name}`)
+  }
+
+  const agentLabel = AGENTS.find((a) => a.id === agent)?.label ?? agent
+
   return (
-    <div className="view-fade flex h-full flex-col overflow-hidden bg-[#fafafa]">
-      {/* Page toolbar — App switcher + Add + proxy hint */}
-      <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-[#ebebef] bg-white/80 px-4 py-2.5">
-        <div className="seg-track flex gap-0">
-          {AGENTS.map((a) => (
+    <div className="flex h-full flex-col" onClick={() => setMenuId(null)}>
+      <div className="flex items-center gap-2 border-b border-[#ebebef] px-4 py-2.5">
+        <select
+          value={agent}
+          onChange={(e) => onAgentChange(e.target.value as AgentId)}
+          className="rounded-md border border-[#e2e2e8] bg-white px-2 py-1 text-[12px] text-[#1a1a1c]"
+        >
+          {AGENTS.filter((a) => a.installed).map((a) => (
+            <option key={a.id} value={a.id}>
+              {a.label}
+            </option>
+          ))}
+        </select>
+
+        <div className="seg-track flex">
+          {(
+            [
+              ['direct', '直连'],
+              ['route', '路由'],
+              ['stack', '聚合'],
+            ] as const
+          ).map(([id, label]) => (
             <button
-              key={a.id}
+              key={id}
               type="button"
-              data-active={agent === a.id}
               onClick={() => {
-                onAgentChange(a.id)
-                toast(`Provider 视图 · ${a.label}`)
+                setMode(id)
+                toast(
+                  id === 'direct'
+                    ? '查看直连供应商'
+                    : id === 'route'
+                      ? '查看路由队列'
+                      : '查看聚合成员',
+                )
               }}
-              className={`seg-item rounded-[6px] px-2.5 py-[5px] text-[11.5px] tracking-tight ${
-                agent === a.id
-                  ? 'font-medium text-[#1a1a1c]'
-                  : 'text-[#6b6b76] hover:text-[#3a3a42]'
+              className={`seg-item rounded-[6px] px-2.5 py-[4px] text-[11.5px] ${
+                mode === id
+                  ? 'bg-white font-medium text-[#1a1a1c] shadow-sm'
+                  : 'text-[#6b6b76]'
               }`}
             >
-              {a.label}
+              {label}
             </button>
           ))}
         </div>
 
-        <div className="ml-auto flex items-center gap-1.5">
-          <span
-            className={`hidden items-center gap-1 rounded-full px-2 py-[3px] text-[10.5px] font-medium sm:inline-flex ${
-              gatewayOn
-                ? 'bg-[#e8f6ee] text-[#1f7a4a]'
-                : 'bg-[#f0f0f3] text-[#8a8a96]'
-            }`}
-          >
-            <span
-              className={`h-[5px] w-[5px] rounded-full ${gatewayOn ? 'bg-[#2bb673]' : 'bg-[#a0a0aa]'}`}
-            />
-            Proxy {gatewayOn ? '开' : '关'}
-          </span>
+        <input
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          placeholder="搜索供应商…"
+          className="ml-1 w-[140px] rounded-md border border-[#e2e2e8] bg-white px-2 py-1 text-[12px] outline-none focus:border-[#2f6fed]/40"
+        />
+
+        <div className="ml-auto flex items-center gap-2">
+          {mode === 'route' && (
+            <button
+              type="button"
+              onClick={() =>
+                toast(
+                  gatewayOn
+                    ? `已为 ${agentLabel} 开始路由`
+                    : '请先开启网关',
+                )
+              }
+              className="rounded-md bg-[#2f6fed] px-2.5 py-1 text-[11.5px] font-medium text-white hover:bg-[#2563eb]"
+            >
+              开始路由
+            </button>
+          )}
+          {mode === 'stack' && (
+            <button
+              type="button"
+              onClick={() => toast(`已切换到聚合模式 · ${agentLabel}`)}
+              className="rounded-md bg-[#2f6fed] px-2.5 py-1 text-[11.5px] font-medium text-white hover:bg-[#2563eb]"
+            >
+              切换到聚合
+            </button>
+          )}
+          {mode === 'direct' && (
+            <button
+              type="button"
+              onClick={() => toast('已回到直连')}
+              className="rounded-md border border-[#e2e2e8] bg-white px-2.5 py-1 text-[11.5px] text-[#3a3a42] hover:bg-[#f5f5f7]"
+            >
+              回到直连
+            </button>
+          )}
           <button
             type="button"
-            onClick={() => toast('Demo：添加供应商（预设向导）')}
-            className="inline-flex items-center gap-1 rounded-[6px] bg-[#1a1a1c] px-2.5 py-[5px] text-[11.5px] font-medium text-white hover:bg-[#333]"
+            onClick={() => setAddOpen(true)}
+            className="flex items-center gap-1 rounded-md border border-[#e2e2e8] bg-white px-2 py-1 text-[11.5px] font-medium text-[#1a1a1c] hover:bg-[#f5f5f7]"
           >
-            <Plus className="h-3 w-3" strokeWidth={2.25} />
-            添加 Provider
+            <Plus className="h-3.5 w-3.5" />
+            添加
           </button>
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-auto p-3.5">
-        <p className="mb-2.5 text-[11px] leading-relaxed text-[#9c9ca8]">
-          对标 CC Switch：拖拽排序 · 启用蓝边 · 悬停操作 · 测速 / 用量 / 复制 / 删除。当前入口{' '}
-          <span className="font-medium text-[#5c5c66]">
-            {AGENTS.find((a) => a.id === agent)?.label}
-          </span>
-          。
-        </p>
+      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto p-3">
+        {mode === 'route' && (
+          <div className="rounded-lg border border-[#dbeafe] bg-[#f0f7ff] px-3 py-2 text-[11.5px] text-[#1e40af]">
+            路由模式：卡片右侧上下键调整故障转移顺序；主操作「路由到此处」立即生效。
+          </div>
+        )}
+        {mode === 'stack' && (
+          <div className="rounded-lg border border-[#e9e0ff] bg-[#f8f5ff] px-3 py-2 text-[11.5px] text-[#5b21b6]">
+            聚合模式：多家供应商模型进入同一选择器；星标为默认回退。
+          </div>
+        )}
 
-        <div className="flex flex-col gap-2">
-          {items.map((p, index) => {
-            const isCurrent = p.id === currentId
-            const showActions = hoveredId === p.id || isCurrent
-            const testing = testingId === p.id
+        {shown.map((p, idx) => {
+          const enabled =
+            mode === 'stack' ? !!p.inStack : activeId === p.id
+          const primaryLabel =
+            mode === 'direct'
+              ? enabled
+                ? '使用中'
+                : '启用'
+              : mode === 'route'
+                ? enabled
+                  ? '当前路由'
+                  : '路由到此处'
+                : enabled
+                  ? p.isDefault
+                    ? '默认'
+                    : '已添加'
+                  : '添加'
 
-            return (
+          return (
+            <div
+              key={p.id}
+              className={`card-lift relative flex items-center gap-3 rounded-xl bg-white px-3 py-2.5 ${
+                enabled ? 'ring-1 ring-[#2f6fed]/25' : ''
+              }`}
+            >
               <div
-                key={p.id}
-                draggable
-                onDragStart={() => setDragFrom(index)}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={() => onDrop(index)}
-                onMouseEnter={() => setHoveredId(p.id)}
-                onMouseLeave={() => setHoveredId(null)}
-                className={`group relative rounded-[12px] bg-white transition-[box-shadow,border-color,transform] duration-150 ${
-                  isCurrent
-                    ? 'border-[1.5px] border-[#2f6fed] shadow-[0_1px_4px_rgba(47,111,237,0.12)]'
-                    : 'border border-[#e8e8ee] shadow-[0_1px_2px_rgba(0,0,0,0.03)] hover:border-[#d8d8e0] hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)]'
-                }`}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[13px] font-bold text-white"
+                style={{ background: p.iconBg }}
               >
-                <div className="flex items-stretch gap-0">
-                  {/* Drag handle */}
-                  <button
-                    type="button"
-                    className="flex w-7 shrink-0 cursor-grab items-center justify-center text-[#c5c5ce] active:cursor-grabbing hover:text-[#8a8a96]"
-                    title="拖拽排序"
-                    onClick={() => toast('按住拖拽可排序')}
-                  >
-                    <GripVertical className="h-4 w-4" strokeWidth={1.75} />
-                  </button>
+                {p.iconLabel}
+              </div>
 
-                  <div className="flex min-w-0 flex-1 items-start gap-3 py-3 pr-3">
-                    {/* Icon block */}
-                    <div
-                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] text-[13px] font-bold text-white"
-                      style={{ background: p.iconBg }}
-                    >
-                      {p.iconLabel}
-                    </div>
-
-                    {/* Main info */}
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="text-[13px] font-semibold tracking-tight text-[#1a1a1c]">
-                          {p.name}
-                        </span>
-                        {isCurrent && (
-                          <span className="rounded-[4px] bg-[#eef3ff] px-1.5 py-[1px] text-[10px] font-medium text-[#2f6fed]">
-                            当前启用
-                          </span>
-                        )}
-                        {p.category === 'official' && (
-                          <span className="rounded-[4px] bg-[#f4f4f6] px-1.5 py-[1px] text-[10px] text-[#8a8a96]">
-                            官方
-                          </span>
-                        )}
-                      </div>
-                      <div className="mt-0.5 text-[11.5px] text-[#8a8a96]">{p.notes}</div>
-                      <button
-                        type="button"
-                        onClick={() => toast(`打开：${p.endpoint}`)}
-                        className="mt-1 inline-flex max-w-full items-center gap-1 truncate font-mono text-[10.5px] text-[#9c9ca8] hover:text-[#2f6fed]"
-                      >
-                        <span className="truncate">{p.endpoint}</span>
-                        <ExternalLink className="h-2.5 w-2.5 shrink-0 opacity-60" />
-                      </button>
-
-                      {/* Usage footer */}
-                      <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px]">
-                        {p.usage && (
-                          <span className="text-[#5c5c66]">
-                            <span className="text-[#9c9ca8]">{p.usage.label} · </span>
-                            {p.usage.detail}
-                          </span>
-                        )}
-                        <span className={`tabular-nums ${latencyColor(p.latency)}`}>
-                          {testing
-                            ? '测速中…'
-                            : p.latency != null
-                              ? `${p.latency} ms`
-                              : '未测速'}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Actions — hover / current */}
-                    <div
-                      className={`flex shrink-0 flex-col items-end gap-1.5 transition-opacity duration-150 ${
-                        showActions ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-                      }`}
-                    >
-                      <div className="flex flex-wrap justify-end gap-1">
-                        <ActionBtn
-                          primary={isCurrent}
-                          onClick={() => {
-                            if (isCurrent) {
-                              toast(`${p.name} 已是当前启用`)
-                              return
-                            }
-                            setCurrentId(p.id)
-                            toast(`已启用：${p.name}（写入 ${AGENTS.find((a) => a.id === agent)?.label} 配置）`)
-                          }}
-                        >
-                          {isCurrent ? (
-                            <>
-                              <Check className="h-3 w-3" strokeWidth={2.5} />
-                              使用中
-                            </>
-                          ) : (
-                            '启用'
-                          )}
-                        </ActionBtn>
-                        <ActionBtn
-                          onClick={() => toast(`Demo：编辑 ${p.name}`)}
-                          title="编辑"
-                        >
-                          <Pencil className="h-3 w-3" strokeWidth={1.85} />
-                          编辑
-                        </ActionBtn>
-                        <ActionBtn
-                          onClick={() => {
-                            setItems((prev) => {
-                              const copy: Provider = {
-                                ...p,
-                                id: `${p.id}-copy-${Date.now()}`,
-                                name: `${p.name} 副本`,
-                              }
-                              const i = prev.findIndex((x) => x.id === p.id)
-                              const next = [...prev]
-                              next.splice(i + 1, 0, copy)
-                              return next
-                            })
-                            toast(`已复制：${p.name}`)
-                          }}
-                          title="复制"
-                        >
-                          <Copy className="h-3 w-3" strokeWidth={1.85} />
-                          复制
-                        </ActionBtn>
-                      </div>
-                      <div className="flex flex-wrap justify-end gap-1">
-                        <ActionBtn
-                          onClick={() => runTest(p)}
-                          disabled={!!testingId}
-                          title="测速"
-                        >
-                          {testing ? (
-                            <Loader2 className="h-3 w-3 animate-spin" strokeWidth={2} />
-                          ) : (
-                            <Gauge className="h-3 w-3" strokeWidth={1.85} />
-                          )}
-                          测速
-                        </ActionBtn>
-                        <ActionBtn
-                          onClick={() =>
-                            toast(
-                              p.usage
-                                ? `${p.name} ${p.usage.label}：${p.usage.detail}`
-                                : `Demo：查询 ${p.name} 用量`,
-                            )
-                          }
-                          title="用量查询"
-                        >
-                          <BarChart3 className="h-3 w-3" strokeWidth={1.85} />
-                          用量
-                        </ActionBtn>
-                        <ActionBtn
-                          danger
-                          disabled={isCurrent}
-                          title={isCurrent ? '当前启用不可删除' : '删除'}
-                          onClick={() => {
-                            if (isCurrent) {
-                              toast('当前启用的供应商不可删除，请先切换')
-                              return
-                            }
-                            setItems((prev) => prev.filter((x) => x.id !== p.id))
-                            toast(`已删除：${p.name}`)
-                          }}
-                        >
-                          <Trash2 className="h-3 w-3" strokeWidth={1.85} />
-                          删除
-                        </ActionBtn>
-                      </div>
-                    </div>
-                  </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="truncate text-[13px] font-semibold text-[#1a1a1c]">
+                    {p.name}
+                  </span>
+                  {p.isDefault && mode === 'stack' && (
+                    <Star className="h-3 w-3 fill-[#f59e0b] text-[#f59e0b]" />
+                  )}
+                  <span className="rounded bg-[#f3f3f5] px-1 py-[1px] text-[9.5px] text-[#6b6b76]">
+                    {p.category === 'official'
+                      ? '官方'
+                      : p.category === 'third_party'
+                        ? '第三方'
+                        : '自定义'}
+                  </span>
+                </div>
+                <div className="mt-0.5 truncate text-[11px] text-[#6b6b76]">
+                  {p.notes} · {p.endpoint.replace(/^https?:\/\//, '')}
+                </div>
+                <div className="mt-1 flex flex-wrap items-center gap-2 text-[10.5px]">
+                  {p.usage && (
+                    <span className="rounded bg-[#f5f5f7] px-1.5 py-[1px] text-[#3a3a42]">
+                      {p.usage.label} {p.usage.detail}
+                    </span>
+                  )}
+                  <span className={latencyColor(p.latency)}>
+                    {p.latency != null ? `${p.latency} ms` : '未测速'}
+                  </span>
                 </div>
               </div>
-            )
-          })}
+
+              {/* primary */}
+              <div className="flex shrink-0 items-center gap-1">
+                {enabled && mode !== 'stack' ? (
+                  <span className="inline-flex items-center gap-1.5 px-1 text-[12px] font-medium text-[#1a1a1c]">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#2f6fed]" />
+                    {primaryLabel}
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    title={primaryLabel}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      if (mode === 'stack' && enabled) {
+                        setList((prev) =>
+                          prev.map((x) =>
+                            x.id === p.id ? { ...x, inStack: false } : x,
+                          ),
+                        )
+                        toast(`已从聚合移除 ${p.name}`)
+                      } else {
+                        enable(p)
+                      }
+                    }}
+                    className="rounded-md p-1.5 text-[#5c5c66] hover:bg-[#f3f3f5] hover:text-[#1a1a1c]"
+                  >
+                    {mode === 'stack' && enabled ? (
+                      <ListMinus className="h-4 w-4" />
+                    ) : mode === 'stack' ? (
+                      <ListPlus className="h-4 w-4" />
+                    ) : mode === 'route' ? (
+                      <Play className="h-4 w-4" />
+                    ) : (
+                      <Power className="h-4 w-4" />
+                    )}
+                  </button>
+                )}
+
+                {/* move up/down — CC Switch failover queue */}
+                <button
+                  type="button"
+                  disabled={idx === 0}
+                  title="上移"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    move(p.id, -1)
+                  }}
+                  className="rounded-md p-1.5 text-[#5c5c66] hover:bg-[#f3f3f5] disabled:opacity-30"
+                >
+                  <ArrowUp className="h-4 w-4" strokeWidth={1.5} />
+                </button>
+                <button
+                  type="button"
+                  disabled={idx === shown.length - 1}
+                  title="下移"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    move(p.id, 1)
+                  }}
+                  className="rounded-md p-1.5 text-[#5c5c66] hover:bg-[#f3f3f5] disabled:opacity-30"
+                >
+                  <ArrowDown className="h-4 w-4" strokeWidth={1.5} />
+                </button>
+
+                <button
+                  type="button"
+                  title="编辑"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setEditId(p.id)
+                  }}
+                  className="rounded-md p-1.5 text-[#5c5c66] hover:bg-[#f3f3f5]"
+                >
+                  <Pencil className="h-4 w-4" strokeWidth={1.5} />
+                </button>
+
+                <div className="relative">
+                  <button
+                    type="button"
+                    title="更多"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setMenuId(menuId === p.id ? null : p.id)
+                    }}
+                    className="rounded-md p-1.5 text-[#5c5c66] hover:bg-[#f3f3f5]"
+                  >
+                    <MoreHorizontal className="h-4 w-4" strokeWidth={1.5} />
+                  </button>
+                  {menuId === p.id && (
+                    <div
+                      className="absolute right-0 top-[calc(100%+4px)] z-40 min-w-[180px] overflow-hidden rounded-lg border border-[#e2e2e8] bg-white py-1 shadow-xl"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {mode === 'stack' && enabled && !p.isDefault && (
+                        <MenuItem
+                          icon={<Star className="h-3.5 w-3.5" />}
+                          label="设为默认"
+                          onClick={() => {
+                            setList((prev) =>
+                              prev.map((x) => ({
+                                ...x,
+                                isDefault: x.id === p.id,
+                              })),
+                            )
+                            setMenuId(null)
+                            toast(`${p.name} 已设为默认`)
+                          }}
+                        />
+                      )}
+                      <MenuItem
+                        icon={<Copy className="h-3.5 w-3.5" />}
+                        label="复制"
+                        onClick={() => duplicate(p)}
+                      />
+                      <MenuItem
+                        icon={
+                          testing === p.id ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <Gauge className="h-3.5 w-3.5" />
+                          )
+                        }
+                        label="检测连通"
+                        onClick={() => test(p)}
+                      />
+                      <MenuItem
+                        icon={<BarChart3 className="h-3.5 w-3.5" />}
+                        label="配置用量查询"
+                        onClick={() => {
+                          setUsageCfgId(p.id)
+                          setMenuId(null)
+                        }}
+                      />
+                      <MenuItem
+                        icon={<Terminal className="h-3.5 w-3.5" />}
+                        label="打开终端"
+                        onClick={() => {
+                          setMenuId(null)
+                          toast(`打开终端 · ${p.name}（Demo）`)
+                        }}
+                      />
+                      <div className="my-1 border-t border-[#ebebef]" />
+                      <MenuItem
+                        icon={<Trash2 className="h-3.5 w-3.5" />}
+                        label="删除"
+                        danger
+                        onClick={() => remove(p)}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Add dialog */}
+      {addOpen && (
+        <Modal title="添加供应商" onClose={() => setAddOpen(false)}>
+          <p className="mb-2 text-[12px] text-[#6b6b76]">
+            选择预设或创建自定义（对标 CC Switch 预设搜索）
+          </p>
+          <div className="grid grid-cols-2 gap-1.5">
+            {PRESET_ADD.map((name) => (
+              <button
+                key={name}
+                type="button"
+                className="rounded-lg border border-[#e2e2e8] bg-[#fafafa] px-2.5 py-2 text-left text-[12px] hover:border-[#2f6fed]/40 hover:bg-white"
+                onClick={() => {
+                  const id = `custom-${Date.now().toString(36).slice(-5)}`
+                  setList((prev) => [
+                    ...prev,
+                    {
+                      id,
+                      name,
+                      notes: '新添加 · Demo',
+                      endpoint: 'https://api.example.com/v1',
+                      iconBg: '#64748b',
+                      iconLabel: name[0]!,
+                      category: 'custom',
+                      latency: null,
+                    },
+                  ])
+                  setAddOpen(false)
+                  toast(`已添加 ${name}`)
+                }}
+              >
+                {name}
+              </button>
+            ))}
+          </div>
+        </Modal>
+      )}
+
+      {editId && (
+        <Modal
+          title={`编辑 · ${list.find((x) => x.id === editId)?.name}`}
+          onClose={() => setEditId(null)}
+        >
+          <Field label="名称" value={list.find((x) => x.id === editId)?.name} />
+          <Field
+            label="API Base URL"
+            value={list.find((x) => x.id === editId)?.endpoint}
+          />
+          <Field label="API Key" value="sk-••••••••••••••••" />
+          <Field label="默认模型" value="auto" />
+          <div className="mt-3 flex justify-end gap-2">
+            <button
+              type="button"
+              className="rounded-md px-3 py-1.5 text-[12px] text-[#6b6b76]"
+              onClick={() => setEditId(null)}
+            >
+              取消
+            </button>
+            <button
+              type="button"
+              className="flex items-center gap-1 rounded-md bg-[#2f6fed] px-3 py-1.5 text-[12px] font-medium text-white"
+              onClick={() => {
+                setEditId(null)
+                toast('已保存（Demo）')
+              }}
+            >
+              <Check className="h-3.5 w-3.5" />
+              保存
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {usageCfgId && (
+        <Modal
+          title={`配置用量查询 · ${list.find((x) => x.id === usageCfgId)?.name}`}
+          onClose={() => setUsageCfgId(null)}
+        >
+          <p className="mb-2 text-[12px] text-[#6b6b76]">
+            官方订阅 / Coding Plan / 余额接口 / 自定义脚本
+          </p>
+          {['官方订阅额度', 'Coding Plan（5h/周/月）', '账户余额 API', '自定义脚本'].map(
+            (opt) => (
+              <button
+                key={opt}
+                type="button"
+                className="mb-1.5 flex w-full items-center justify-between rounded-lg border border-[#e2e2e8] px-3 py-2 text-left text-[12px] hover:bg-[#f5f5f7]"
+                onClick={() => {
+                  setUsageCfgId(null)
+                  toast(`已配置：${opt}`)
+                }}
+              >
+                {opt}
+                <ExternalLink className="h-3.5 w-3.5 text-[#9c9ca8]" />
+              </button>
+            ),
+          )}
+        </Modal>
+      )}
+    </div>
+  )
+}
+
+function MenuItem({
+  icon,
+  label,
+  onClick,
+  danger,
+}: {
+  icon: ReactNode
+  label: string
+  onClick: () => void
+  danger?: boolean
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-[12px] hover:bg-[#f5f5f7] ${
+        danger ? 'text-[#b91c1c]' : 'text-[#3a3a42]'
+      }`}
+    >
+      {icon}
+      {label}
+    </button>
+  )
+}
+
+function Modal({
+  title,
+  onClose,
+  children,
+}: {
+  title: string
+  onClose: () => void
+  children: ReactNode
+}) {
+  return (
+    <div
+      className="absolute inset-0 z-50 flex items-center justify-center bg-black/25 p-6"
+      onClick={onClose}
+    >
+      <div
+        className="max-h-[90%] w-full max-w-md overflow-y-auto rounded-xl border border-[#e2e2e8] bg-white p-4 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="text-[14px] font-semibold text-[#1a1a1c]">{title}</h3>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-[12px] text-[#9c9ca8] hover:text-[#1a1a1c]"
+          >
+            关闭
+          </button>
         </div>
+        {children}
       </div>
     </div>
   )
 }
 
-function ActionBtn({
-  children,
-  onClick,
-  primary,
-  danger,
-  disabled,
-  title,
-}: {
-  children: ReactNode
-  onClick: () => void
-  primary?: boolean
-  danger?: boolean
-  disabled?: boolean
-  title?: string
-}) {
+function Field({ label, value }: { label: string; value?: string }) {
   return (
-    <button
-      type="button"
-      title={title}
-      disabled={disabled}
-      onClick={onClick}
-      className={`inline-flex items-center gap-1 rounded-[6px] px-2 py-[4px] text-[11px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
-        primary
-          ? 'bg-[#eef3ff] text-[#2f6fed]'
-          : danger
-            ? 'bg-[#faf4f4] text-[#a33a3a] hover:bg-[#f8eaea]'
-            : 'bg-[#f4f4f6] text-[#5c5c66] hover:bg-[#ececef]'
-      }`}
-    >
-      {children}
-    </button>
+    <label className="mb-2 block">
+      <span className="mb-1 block text-[11px] text-[#6b6b76]">{label}</span>
+      <input
+        defaultValue={value}
+        className="w-full rounded-md border border-[#e2e2e8] bg-[#fafafa] px-2.5 py-1.5 text-[12px] outline-none focus:border-[#2f6fed]/40"
+      />
+    </label>
   )
 }
