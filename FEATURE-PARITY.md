@@ -78,3 +78,21 @@
 | 组合模型 = 云 LLM + 本地 Pack | Agent 选一个入口即可 |
 | Agent 自带 LLM 优先 | 后台未配云模型时走入口额度 |
 
+
+## 内置对话 × VerticalCraft agent-web 对齐（Demo）
+
+对标仓库：`VerticalCraft/agent-web`（SessionDaemon）+ `VerticalCraft/agent-ui`（Claude 壳）
+
+| 语义 | agent-web | PackGate Demo「对话」 |
+|------|-----------|----------------------|
+| 目标身份 | Machine→Project→Workspace→Session | 顶栏 machine/workspace + sessionId |
+| 首发建会话 | first-send / conditional create | 空态发首条 → 生成 sessionId |
+| 空闲发送 | POST …/prompt | prompt |
+| 执行中发送 | steer / followUp 队列 | followUp 入队，不写已确认历史 |
+| 停止 | /abort（保留实例）≠ /stop | ■ = abort，Session 保留 |
+| 工具 | toolCallId running→update→end | Pack `/` 命令 → 工具卡片 |
+| Host UI | confirm / select / input | Pack 前 confirm 卡 |
+| 模型 | GET/POST …/model · thinking | composer 内 select（Georgia） |
+| UI 壳 | agent-ui ClaudeDefaultSurface | 暖底 #f0ece0 · ✦ 问候 · ↑ 陶土发送 |
+
+正式版应经网关代理到真实 SessionDaemon，Demo 仅投影状态机，不另起第二执行器。
