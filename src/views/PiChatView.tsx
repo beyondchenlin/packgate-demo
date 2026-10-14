@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Check, ChevronDown, CornerDownLeft, Send } from 'lucide-react'
+import { ArrowUp, Check, ChevronDown, Paperclip } from 'lucide-react'
 import { COMPOSITE_OPTIONS, PACK_COMMANDS } from '../lib/types'
 import { useToast } from '../lib/toast'
 
@@ -31,6 +31,8 @@ export function PiChatView() {
   const endRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const modelRef = useRef<HTMLDivElement>(null)
+
+  const hasUserMsgs = msgs.some((m) => m.role === 'user')
 
   const modelOptions = useMemo(() => {
     const base = [...COMPOSITE_OPTIONS]
@@ -125,6 +127,145 @@ export function PiChatView() {
 
   const canSend = !!input.trim() && !busy
 
+  const composer = (
+    <div
+      className="composer-wrap"
+      onClick={(e) => e.stopPropagation()}
+    >
+      {slashOpen && filtered.length > 0 && (
+        <div className="slash-pop" role="listbox">
+          <div className="slash-pop-head">命令 · Pack</div>
+          {filtered.map((c, i) => (
+            <button
+              key={c.id}
+              type="button"
+              className={`slash-item${i === slashIdx ? ' on' : ''}`}
+              onMouseEnter={() => setSlashIdx(i)}
+              onClick={() => pickCmd(c)}
+            >
+              <span className="slash-cmd">{c.cmd}</span>
+              <span className="slash-meta">
+                <span className="slash-name">{c.name}</span>
+                <span className="slash-desc">{c.desc}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      <div className={`composer-card${focused ? ' is-focus' : ''}`}>
+        <textarea
+          ref={inputRef}
+          className="composer-input"
+          value={input}
+          rows={1}
+          placeholder="发消息，或输入 / 调用 Pack…"
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          onChange={(e) => {
+            const v = e.target.value
+            setInput(v)
+            parseSlash(v)
+          }}
+          onKeyDown={(e) => {
+            if (slashOpen && filtered.length > 0) {
+              if (e.key === 'ArrowDown') {
+                e.preventDefault()
+                setSlashIdx((i) => (i + 1) % filtered.length)
+                return
+              }
+              if (e.key === 'ArrowUp') {
+                e.preventDefault()
+                setSlashIdx((i) => (i - 1 + filtered.length) % filtered.length)
+                return
+              }
+              if (
+                e.key === 'Tab' ||
+                (e.key === 'Enter' && !e.shiftKey && input.match(/^\/\S*$/))
+              ) {
+                e.preventDefault()
+                pickCmd(filtered[slashIdx]!)
+                return
+              }
+              if (e.key === 'Escape') {
+                setSlashOpen(false)
+                return
+              }
+            }
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault()
+              send()
+            }
+          }}
+        />
+
+        <div className="composer-toolbar">
+          <div className="composer-left" ref={modelRef}>
+            <button
+              type="button"
+              className="composer-icon-btn"
+              title="添加附件（Demo）"
+              onClick={() => toast('附件上传（Demo）')}
+            >
+              <Paperclip size={15} strokeWidth={1.8} />
+            </button>
+
+            <button
+              type="button"
+              className={`model-pill${modelOpen ? ' open' : ''}`}
+              onClick={() => setModelOpen((v) => !v)}
+              aria-haspopup="listbox"
+              aria-expanded={modelOpen}
+              title="组合模型 / Pack"
+            >
+              <span className="model-pill-dot" />
+              <span className="model-pill-label">{model}</span>
+              <ChevronDown size={13} strokeWidth={2} />
+            </button>
+
+            {modelOpen && (
+              <div className="model-menu" role="listbox">
+                <div className="model-menu-head">组合模型 / Pack</div>
+                {modelOptions.map((o) => (
+                  <button
+                    key={o}
+                    type="button"
+                    className={`model-menu-item${o === model ? ' on' : ''}`}
+                    onClick={() => {
+                      setModel(o)
+                      setModelOpen(false)
+                      toast(o)
+                      inputRef.current?.focus()
+                    }}
+                  >
+                    <span>{o}</span>
+                    {o === model && <Check size={14} strokeWidth={2.2} />}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="composer-right">
+            <button
+              type="button"
+              className={`send-btn${canSend ? ' ready' : ''}`}
+              disabled={!canSend}
+              onClick={() => send()}
+              aria-label="发送"
+            >
+              <ArrowUp size={16} strokeWidth={2.4} />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="composer-foot">
+        Enter 发送 · Shift+Enter 换行 · / 调 Pack
+      </div>
+    </div>
+  )
+
   return (
     <div
       className="chat-view"
@@ -133,157 +274,51 @@ export function PiChatView() {
         setModelOpen(false)
       }}
     >
-      <div className="chat-msgs">
-        {msgs.map((m) => (
-          <div
-            key={m.id}
-            className={`chat-bubble-row ${m.role === 'user' ? 'is-user' : ''}`}
-          >
-            <div className={`chat-bubble role-${m.role}`}>
-              {m.role !== 'user' && (
-                <div className="chat-bubble-role">
-                  {m.role === 'system' ? '系统' : '助手'}
+      {!hasUserMsgs ? (
+        <div className="chat-empty">
+          <div className="chat-empty-inner">
+            <h2 className="chat-greeting">
+              <span className="chat-sparkle">✦</span>
+              有什么可以帮你的？
+            </h2>
+            <p className="chat-greeting-sub">
+              自然语言调用 Pack，或输入 / 打开命令面板
+            </p>
+            {msgs
+              .filter((m) => m.role === 'system')
+              .map((m) => (
+                <div key={m.id} className="chat-bubble role-system chat-empty-hint">
+                  <div className="chat-bubble-role">系统</div>
+                  {m.text}
                 </div>
-              )}
-              {m.text}
-            </div>
+              ))}
+            {composer}
           </div>
-        ))}
-        {busy && <div className="chat-typing">正在回复…</div>}
-        <div ref={endRef} />
-      </div>
-
-      <div
-        className="composer-wrap"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {slashOpen && filtered.length > 0 && (
-          <div className="slash-pop" role="listbox">
-            <div className="slash-pop-head">命令 · Pack</div>
-            {filtered.map((c, i) => (
-              <button
-                key={c.id}
-                type="button"
-                className={`slash-item${i === slashIdx ? ' on' : ''}`}
-                onMouseEnter={() => setSlashIdx(i)}
-                onClick={() => pickCmd(c)}
+        </div>
+      ) : (
+        <>
+          <div className="chat-msgs">
+            {msgs.map((m) => (
+              <div
+                key={m.id}
+                className={`chat-bubble-row ${m.role === 'user' ? 'is-user' : ''}`}
               >
-                <span className="slash-cmd">{c.cmd}</span>
-                <span className="slash-meta">
-                  <span className="slash-name">{c.name}</span>
-                  <span className="slash-desc">{c.desc}</span>
-                </span>
-              </button>
+                <div className={`chat-bubble role-${m.role}`}>
+                  {m.role !== 'user' && (
+                    <div className="chat-bubble-role">
+                      {m.role === 'system' ? '系统' : '助手'}
+                    </div>
+                  )}
+                  {m.text}
+                </div>
+              </div>
             ))}
+            {busy && <div className="chat-typing">正在回复…</div>}
+            <div ref={endRef} />
           </div>
-        )}
-
-        <div className={`composer-card${focused ? ' is-focus' : ''}`}>
-          <textarea
-            ref={inputRef}
-            className="composer-input"
-            value={input}
-            rows={1}
-            placeholder="发消息，或输入 / 调用 Pack…"
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
-            onChange={(e) => {
-              const v = e.target.value
-              setInput(v)
-              parseSlash(v)
-            }}
-            onKeyDown={(e) => {
-              if (slashOpen && filtered.length > 0) {
-                if (e.key === 'ArrowDown') {
-                  e.preventDefault()
-                  setSlashIdx((i) => (i + 1) % filtered.length)
-                  return
-                }
-                if (e.key === 'ArrowUp') {
-                  e.preventDefault()
-                  setSlashIdx((i) => (i - 1 + filtered.length) % filtered.length)
-                  return
-                }
-                if (
-                  e.key === 'Tab' ||
-                  (e.key === 'Enter' && !e.shiftKey && input.match(/^\/\S*$/))
-                ) {
-                  e.preventDefault()
-                  pickCmd(filtered[slashIdx]!)
-                  return
-                }
-                if (e.key === 'Escape') {
-                  setSlashOpen(false)
-                  return
-                }
-              }
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault()
-                send()
-              }
-            }}
-          />
-
-          <div className="composer-toolbar">
-            <div className="composer-left" ref={modelRef}>
-              <button
-                type="button"
-                className={`model-pill${modelOpen ? ' open' : ''}`}
-                onClick={() => setModelOpen((v) => !v)}
-                aria-haspopup="listbox"
-                aria-expanded={modelOpen}
-                title="组合模型 / Pack"
-              >
-                <span className="model-pill-dot" />
-                <span className="model-pill-label">{model}</span>
-                <ChevronDown size={13} strokeWidth={2} />
-              </button>
-
-              {modelOpen && (
-                <div className="model-menu" role="listbox">
-                  <div className="model-menu-head">组合模型 / Pack</div>
-                  {modelOptions.map((o) => (
-                    <button
-                      key={o}
-                      type="button"
-                      className={`model-menu-item${o === model ? ' on' : ''}`}
-                      onClick={() => {
-                        setModel(o)
-                        setModelOpen(false)
-                        toast(o)
-                        inputRef.current?.focus()
-                      }}
-                    >
-                      <span>{o}</span>
-                      {o === model && <Check size={14} strokeWidth={2.2} />}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="composer-right">
-              <span className="composer-kbd" title="Enter 发送">
-                <CornerDownLeft size={11} strokeWidth={2} />
-                发送
-              </span>
-              <button
-                type="button"
-                className={`send-btn${canSend ? ' ready' : ''}`}
-                disabled={!canSend}
-                onClick={() => send()}
-                aria-label="发送"
-              >
-                <Send size={15} strokeWidth={2.2} />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="composer-foot">
-          Enter 发送 · Shift+Enter 换行 · / 调 Pack
-        </div>
-      </div>
+          {composer}
+        </>
+      )}
     </div>
   )
 }

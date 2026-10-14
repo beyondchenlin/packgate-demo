@@ -99,8 +99,8 @@ body {
   margin: auto;
   width: min(980px, 94vw);
   /* always leave stage padding so titlebar never sticks to / past viewport top */
-  height: min(720px, calc(100dvh - 2 * clamp(28px, 5vh, 56px)));
-  max-height: calc(100dvh - 56px);
+  height: min(780px, calc(100dvh - 2 * clamp(20px, 4vh, 40px)));
+  max-height: calc(100dvh - 40px);
 }
 
 /* traffic + drag strip — always visible above sidebar/main */
@@ -138,10 +138,12 @@ body {
   flex-direction: column;
   padding: 10px 8px 10px;
   min-height: 0;
-  /* CC Switch spacing — slim IA so content fits without cramming */
   overflow-x: hidden;
   overflow-y: auto;
+  scrollbar-width: none; /* Firefox — no visible bar */
+  -ms-overflow-style: none;
 }
+.sidebar::-webkit-scrollbar { display: none; }
 .sidebar.collapsed { width: 56px; }
 
 .sb-brand {
@@ -549,7 +551,30 @@ body {
   gap: 10px;
   padding-top: 2px;
 }
-.composer-left { position: relative; min-width: 0; }
+.composer-left {
+  position: relative;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.composer-icon-btn {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--fg-3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+  flex: none;
+}
+.composer-icon-btn:hover {
+  background: var(--bg-subtle);
+  color: var(--fg-1);
+}
 .composer-right {
   display: flex;
   align-items: center;
@@ -730,3 +755,49 @@ body {
 .slash-meta { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 .slash-name { font-size: 12.5px; font-weight: 560; color: var(--fg-1); }
 .slash-desc { font-size: 11px; color: var(--fg-3); }
+
+
+/* VerticalCraft-inspired empty chat */
+.chat-empty {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 8px 4px;
+}
+.chat-empty-inner {
+  width: min(560px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+}
+.chat-greeting {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 22px;
+  font-weight: 650;
+  color: var(--fg-1);
+  letter-spacing: -0.02em;
+}
+.chat-sparkle {
+  color: var(--action);
+  font-size: 18px;
+}
+.chat-greeting-sub {
+  margin: -4px 0 4px;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--fg-3);
+}
+.chat-empty-hint {
+  max-width: 100%;
+  margin: 0 auto 4px;
+}
+.chat-empty .composer-wrap {
+  width: 100%;
+}

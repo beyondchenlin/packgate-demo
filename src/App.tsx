@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import {
-  AppWindow,
   BookOpen,
   History,
   KeyRound,
@@ -57,7 +56,6 @@ const ICONS: Record<string, typeof Route> = {
   pi: MessageSquare,
   play: FlaskConical,
   gateway: Package,
-  apps: AppWindow,
   settings: Settings,
   plugins: Puzzle,
 }
@@ -79,6 +77,7 @@ function Shell() {
     nav === 'providers'
       ? APPS.find((a) => a.id === app)?.label ?? 'PackGate'
       : NAV_LABEL[nav]
+  // Never repeat the page title (fixes「对话 对话」)
   const subtitle =
     nav === 'providers'
       ? '供应商'
@@ -86,9 +85,7 @@ function Shell() {
         ? '本地能力包'
         : nav === 'composite'
           ? '云 + 本地入口'
-          : nav === 'playground'
-            ? 'LocalAI 风格试跑'
-            : undefined
+          : undefined
 
   const showAdd =
     nav === 'providers' ||
@@ -148,6 +145,31 @@ function Shell() {
               })}
             </div>
 
+            <div className="sb-group">应用</div>
+            {APPS.map((a) => (
+              <button
+                key={a.id}
+                type="button"
+                className="sb-item"
+                data-on={nav === 'providers' && app === a.id}
+                onClick={() => {
+                  setApp(a.id)
+                  setNav('providers')
+                  toast(a.label)
+                }}
+              >
+                <span
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: 99,
+                    background: a.color,
+                    flex: 'none',
+                  }}
+                />
+                {a.label}
+              </button>
+            ))}
 
             <div className="sb-group">扩展</div>
             {EXTRA_NAV.map((item) => {
@@ -187,15 +209,6 @@ function Shell() {
             })}
 
             <div className="sb-foot">
-              <button
-                type="button"
-                className="sb-item"
-                data-on={nav === 'apps'}
-                onClick={() => go('apps')}
-              >
-                <AppWindow strokeWidth={1.6} />
-                应用
-              </button>
               <button
                 type="button"
                 className="sb-item"
