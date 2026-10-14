@@ -23,7 +23,7 @@ export function PiChatView() {
     {
       id: '0',
       role: 'system',
-      text: 'PackGate · 用自然语言对话，或输入 / 调用 Pack（如 /tts、/asr、/crawl）。',
+      text: '用自然语言对话，或输入 / 调用 Pack（如 /tts、/asr、/crawl）。',
     },
   ])
   const endRef = useRef<HTMLDivElement>(null)
@@ -128,7 +128,7 @@ export function PiChatView() {
             borderBottom: '0.5px solid var(--border)',
           }}
         >
-          <span style={{ fontWeight: 650, fontSize: 13 }}>PackGate</span>
+          <span style={{ fontWeight: 650, fontSize: 13 }}>对话</span>
           <span className="muted" style={{ fontSize: 12 }}>·</span>
           <select
             value={model}
@@ -191,7 +191,7 @@ export function PiChatView() {
                     className="muted"
                     style={{ fontSize: 10.5, marginBottom: 4, fontWeight: 600 }}
                   >
-                    {m.role === 'system' ? '系统' : 'PackGate'}
+                    {m.role === 'system' ? '系统' : '助手'}
                   </div>
                 )}
                 {m.text}
@@ -200,7 +200,7 @@ export function PiChatView() {
           ))}
           {busy && (
             <div className="muted" style={{ fontSize: 12 }}>
-              PackGate 正在想…
+              正在回复…
             </div>
           )}
           <div ref={endRef} />

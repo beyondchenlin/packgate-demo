@@ -36,7 +36,7 @@ export const APPS: { id: AgentId; label: string; color: string }[] = [
 
 /** PackGate 核心：侧栏一级 */
 export const CORE_NAV: { id: NavId; label: string; icon: string }[] = [
-  { id: 'pi-chat', label: 'PackGate', icon: 'pi' },
+  { id: 'pi-chat', label: '对话', icon: 'pi' },
   { id: 'packs', label: 'Pack 市场', icon: 'packs' },
   { id: 'composite', label: '组合模型', icon: 'composite' },
 ]
@@ -59,7 +59,7 @@ export const NAV_LABEL: Record<NavId, string> = {
   providers: '供应商',
   routing: '路由图',
   packs: 'Pack 市场',
-  'pi-chat': 'PackGate',
+  'pi-chat': '对话',
   playground: '本地试跑',
   mcp: 'MCP',
   skills: 'Skills',
