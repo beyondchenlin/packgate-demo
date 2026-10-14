@@ -1,13 +1,13 @@
 import { useState } from 'react'
-import { ChevronDown, Star } from 'lucide-react'
-import { AGENTS, type AgentId } from '../lib/types'
+import { ChevronDown } from 'lucide-react'
+import { AGENTS, PROFILES, type AgentId, type ProfileId } from '../lib/types'
 import { useToast } from '../lib/toast'
 
-const MODELS: Record<string, string[]> = {
-  'claude-code': ['claude-opus-4', 'pack/视频多模态', 'group/省钱组', 'deepseek-v3', '本地 · 自带额度'],
+const PICK: Record<string, string[]> = {
+  'claude-code': ['pack/视频多模态', 'claude-opus-4', 'group/daily-coding', '本地 · 自带额度'],
   codex: ['gpt-5.4', 'pack/视频多模态', 'deepseek-v3', '本地 · 自带额度'],
   workbuddy: ['workbuddy-free', 'pack/ReachFlow', 'glm-4.6'],
-  gemini: ['gemini-2.5-pro', 'group/省钱组'],
+  gemini: ['gemini-2.5-pro', 'group/cheap'],
   'cursor-cli': ['cursor-default', 'pack/视频多模态'],
   opencode: [],
 }
@@ -20,123 +20,139 @@ export function AgentsView({
   onAgentChange: (id: AgentId) => void
 }) {
   const { toast } = useToast()
-  const [picked, setPicked] = useState<Record<string, string>>({
+  const [on, setOn] = useState<Record<string, boolean>>({
+    'claude-code': true,
+    codex: true,
+    workbuddy: true,
+    gemini: false,
+    'cursor-cli': true,
+  })
+  const [model, setModel] = useState<Record<string, string>>({
     'claude-code': 'pack/视频多模态',
     codex: '本地 · 自带额度',
     workbuddy: 'workbuddy-free',
     gemini: 'gemini-2.5-pro',
     'cursor-cli': 'cursor-default',
   })
-  const [openFor, setOpenFor] = useState<string | null>(null)
-  const [favs, setFavs] = useState<Record<string, string[]>>({
-    'claude-code': ['pack/视频多模态', 'claude-opus-4'],
-  })
+  const [open, setOpen] = useState<string | null>(null)
+  const [profile, setProfile] = useState<ProfileId>('default')
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="border-b border-[#ebebef] px-4 py-2.5">
-        <div className="text-[13px] font-semibold text-[#1a1a1c]">Agents</div>
-        <div className="text-[11px] text-[#6b6b76]">
-          点模型 → 可搜索列表；无后台 LLM 时优先「本地 · 自带额度」
-        </div>
+    <div className="page" onClick={() => setOpen(null)}>
+      <div className="page-head">
+        <h1>Agents</h1>
+        <p>接入后，这里选的模型会出现在 Agent 的模型列表里；无后台 LLM 时用「本地 · 自带额度」。</p>
       </div>
-      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto p-3">
-        {AGENTS.map((a) => {
-          const models = MODELS[a.id] ?? []
-          const current = picked[a.id] ?? '—'
-          return (
-            <div
-              key={a.id}
-              className={`card-lift relative rounded-xl bg-white px-3 py-2.5 ${
-                a.id === agent ? 'ring-1 ring-[#2f6fed]/30' : ''
-              } ${!a.installed ? 'opacity-50' : ''}`}
+
+      <div className="card">
+        {AGENTS.filter((a) => a.installed).map((a) => (
+          <div
+            key={a.id}
+            className="row"
+            style={{
+              background: a.id === agent ? 'rgba(79,70,229,0.03)' : undefined,
+            }}
+          >
+            <span
+              className="dot"
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: 99,
+                background: a.color,
+                flex: 'none',
+              }}
+            />
+            <button
+              type="button"
+              style={{
+                border: 0,
+                background: 'transparent',
+                textAlign: 'left',
+                minWidth: 0,
+                flex: 1,
+                padding: 0,
+                cursor: 'default',
+              }}
+              onClick={() => onAgentChange(a.id)}
             >
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  disabled={!a.installed}
-                  onClick={() => {
-                    onAgentChange(a.id)
-                    toast(`聚焦 ${a.label}`)
-                  }}
-                  className="text-left"
-                >
-                  <div className="text-[13px] font-semibold text-[#1a1a1c]">{a.label}</div>
-                  <div className="text-[10.5px] text-[#8a8a96]">
-                    {a.installed ? '已检测安装' : '未安装 · 侧栏可隐藏'}
-                  </div>
-                </button>
-                <div className="relative ml-auto">
-                  <button
-                    type="button"
-                    disabled={!a.installed}
-                    onClick={() => setOpenFor(openFor === a.id ? null : a.id)}
-                    className="flex items-center gap-1 rounded-md border border-[#e2e2e8] bg-[#fafafa] px-2.5 py-1 text-[12px] text-[#1a1a1c] hover:bg-white"
-                  >
-                    <span className="max-w-[160px] truncate">{current}</span>
-                    <ChevronDown className="h-3 w-3 text-[#9c9ca8]" />
-                  </button>
-                  {openFor === a.id && (
-                    <div className="absolute right-0 top-[calc(100%+4px)] z-30 max-h-56 w-[240px] overflow-y-auto rounded-lg border border-[#e2e2e8] bg-white py-1 shadow-xl">
-                      <div className="px-2.5 py-1 text-[10px] text-[#9c9ca8]">模型 / Pack / 组</div>
-                      {models.map((m) => (
-                        <button
-                          key={m}
-                          type="button"
-                          className={`flex w-full items-center gap-2 px-2.5 py-1.5 text-left text-[12px] hover:bg-[#f5f5f7] ${
-                            m === current ? 'font-medium text-[#2f6fed]' : 'text-[#3a3a42]'
-                          }`}
-                          onClick={() => {
-                            setPicked((p) => ({ ...p, [a.id]: m }))
-                            setOpenFor(null)
-                            toast(`${a.label} → ${m}`)
-                          }}
-                        >
-                          <span className="flex-1 truncate">{m}</span>
-                          <button
-                            type="button"
-                            className="text-[#9c9ca8] hover:text-[#f59e0b]"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              setFavs((f) => {
-                                const cur = f[a.id] ?? []
-                                const next = cur.includes(m)
-                                  ? cur.filter((x) => x !== m)
-                                  : [...cur, m]
-                                return { ...f, [a.id]: next }
-                              })
-                              toast('已更新常用短名单')
-                            }}
-                          >
-                            <Star
-                              className={`h-3 w-3 ${
-                                (favs[a.id] ?? []).includes(m)
-                                  ? 'fill-[#f59e0b] text-[#f59e0b]'
-                                  : ''
-                              }`}
-                            />
-                          </button>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
+              <div style={{ fontWeight: 560, fontSize: 13 }}>{a.label}</div>
+              <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>
+                {on[a.id] ? '已接入 · 经 PackGate' : '未接入'}
               </div>
-              {(favs[a.id] ?? []).length > 0 && (
-                <div className="mt-1.5 flex flex-wrap gap-1">
-                  {(favs[a.id] ?? []).map((f) => (
-                    <span
-                      key={f}
-                      className="rounded-full bg-[#f5f5f7] px-2 py-[1px] text-[10px] text-[#5c5c66]"
+            </button>
+
+            <div className="relative" onClick={(e) => e.stopPropagation()}>
+              <button
+                type="button"
+                className="btn"
+                style={{ minWidth: 150, justifyContent: 'space-between' }}
+                onClick={() => setOpen(open === a.id ? null : a.id)}
+              >
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 140 }}>
+                  {model[a.id]}
+                </span>
+                <ChevronDown style={{ width: 12, height: 12, opacity: 0.5 }} />
+              </button>
+              {open === a.id && (
+                <div className="more-menu" style={{ minWidth: 200 }}>
+                  {(PICK[a.id] ?? []).map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => {
+                        setModel((x) => ({ ...x, [a.id]: m }))
+                        setOpen(null)
+                        toast(`${a.label} → ${m}`)
+                      }}
                     >
-                      {f}
-                    </span>
+                      {m}
+                    </button>
                   ))}
                 </div>
               )}
             </div>
-          )
-        })}
+
+            <button
+              type="button"
+              className="toggle"
+              data-on={!!on[a.id]}
+              aria-label="接入"
+              onClick={() => {
+                setOn((x) => ({ ...x, [a.id]: !x[a.id] }))
+                toast(on[a.id] ? `已断开 ${a.label}` : `已接入 ${a.label}`)
+              }}
+            >
+              <i />
+            </button>
+          </div>
+        ))}
+
+        <div className="footer-bar">
+          <span className="muted" style={{ fontSize: 12 }}>方案</span>
+          {PROFILES.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              className="chip"
+              data-on={profile === p.id}
+              onClick={() => {
+                setProfile(p.id)
+                toast(`方案 · ${p.label}`)
+              }}
+            >
+              {p.label}
+            </button>
+          ))}
+          <button
+            type="button"
+            className="btn"
+            style={{ marginLeft: 'auto' }}
+            onClick={() => toast('已保存当前方案')}
+          >
+            + 保存当前
+          </button>
+        </div>
       </div>
     </div>
   )

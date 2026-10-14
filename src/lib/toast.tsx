@@ -7,37 +7,25 @@ import {
   type ReactNode,
 } from 'react'
 
-type ToastItem = { id: number; message: string }
+type ToastCtx = { toast: (msg: string) => void }
 
-type ToastCtx = { toast: (message: string) => void }
-
-const Ctx = createContext<ToastCtx | null>(null)
-
-let seq = 0
+const Ctx = createContext<ToastCtx>({ toast: () => {} })
 
 export function ToastProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<ToastItem[]>([])
-
-  const toast = useCallback((message: string) => {
-    const id = ++seq
-    setItems((prev) => [...prev.slice(-3), { id, message }])
-    window.setTimeout(() => {
-      setItems((prev) => prev.filter((t) => t.id !== id))
-    }, 2400)
+  const [items, setItems] = useState<{ id: number; msg: string }[]>([])
+  const toast = useCallback((msg: string) => {
+    const id = Date.now() + Math.random()
+    setItems((xs) => [...xs.slice(-2), { id, msg }])
+    setTimeout(() => setItems((xs) => xs.filter((x) => x.id !== id)), 1800)
   }, [])
-
   const value = useMemo(() => ({ toast }), [toast])
-
   return (
     <Ctx.Provider value={value}>
       {children}
-      <div className="pointer-events-none fixed bottom-7 left-1/2 z-[100] flex -translate-x-1/2 flex-col gap-1.5">
+      <div className="toast-stack">
         {items.map((t) => (
-          <div
-            key={t.id}
-            className="toast-enter rounded-[8px] bg-[#1a1a1c]/92 px-3.5 py-2 text-[12px] tracking-tight text-white shadow-[0_8px_24px_rgba(0,0,0,0.18)] backdrop-blur-sm"
-          >
-            {t.message}
+          <div key={t.id} className="toast">
+            {t.msg}
           </div>
         ))}
       </div>
@@ -46,7 +34,5 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 }
 
 export function useToast() {
-  const ctx = useContext(Ctx)
-  if (!ctx) throw new Error('useToast outside provider')
-  return ctx
+  return useContext(Ctx)
 }
