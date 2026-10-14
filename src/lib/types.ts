@@ -36,10 +36,9 @@ export const APPS: { id: AgentId; label: string; color: string }[] = [
 
 /** PackGate 核心：侧栏一级 */
 export const CORE_NAV: { id: NavId; label: string; icon: string; hint: string }[] = [
+  { id: 'pi-chat', label: 'Pi 对话', icon: 'pi', hint: '主页' },
   { id: 'packs', label: 'Pack 市场', icon: 'packs', hint: '核心' },
   { id: 'composite', label: '组合模型', icon: 'composite', hint: '核心' },
-  { id: 'pi-chat', label: 'Pi 对话', icon: 'pi', hint: '内置' },
-  { id: 'playground', label: '本地试跑', icon: 'play', hint: '试跑' },
 ]
 
 export const GLOBAL_NAV: { id: NavId; label: string; icon: string }[] = [
@@ -100,4 +99,13 @@ export const COMPOSITE_OPTIONS = [
   'Pack · 本地 ASR',
   'Pack · ReachFlow',
   '本地 · Agent 自带额度',
+]
+
+/** / 命令面板与 Pack 试跑共用 */
+export const PACK_COMMANDS: { id: string; cmd: string; name: string; desc: string; kind: 'tts' | 'asr' | 'chat' | 'crawl' | 'video' }[] = [
+  { id: 'tts', cmd: '/tts', name: '本地 TTS', desc: '文本转语音', kind: 'tts' },
+  { id: 'asr', cmd: '/asr', name: '本地 ASR', desc: '语音识别', kind: 'asr' },
+  { id: 'reach', cmd: '/crawl', name: 'ReachFlow', desc: '网页爬取', kind: 'crawl' },
+  { id: 'video', cmd: '/video', name: '视频多模态', desc: '剪辑管线', kind: 'video' },
+  { id: 'img', cmd: '/image', name: '本地生图', desc: '按需生图', kind: 'chat' },
 ]

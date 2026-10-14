@@ -64,7 +64,7 @@ const ICONS: Record<string, typeof Route> = {
 
 function Shell() {
   const { toast } = useToast()
-  const [nav, setNav] = useState<NavId>('packs')
+  const [nav, setNav] = useState<NavId>('pi-chat')
   const [app, setApp] = useState<AgentId>('claude-code')
   const [proxyOn, setProxyOn] = useState(true)
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
