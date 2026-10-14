@@ -119,46 +119,6 @@ export function PiChatView() {
           overflow: 'hidden',
         }}
       >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            padding: '10px 14px',
-            borderBottom: '0.5px solid var(--border)',
-          }}
-        >
-          <span style={{ fontWeight: 650, fontSize: 13 }}>对话</span>
-          <span className="muted" style={{ fontSize: 12 }}>·</span>
-          <select
-            value={model}
-            onChange={(e) => {
-              setModel(e.target.value)
-              toast(e.target.value)
-            }}
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              border: '1px solid var(--border)',
-              background: 'var(--bg-subtle)',
-              borderRadius: 8,
-              font: 'inherit',
-              fontSize: 12.5,
-              padding: '5px 8px',
-              color: 'var(--fg-1)',
-              maxWidth: 240,
-            }}
-          >
-            {COMPOSITE_OPTIONS.map((o) => (
-              <option key={o} value={o}>
-                {o}
-              </option>
-            ))}
-          </select>
-          <span className="muted" style={{ fontSize: 11.5, marginLeft: 'auto' }}>
-            输入 / 调用 Pack
-          </span>
-        </div>
-
         <div style={{ flex: 1, overflow: 'auto', padding: '14px 16px' }}>
           {msgs.map((m) => (
             <div
@@ -272,7 +232,7 @@ export function PiChatView() {
             </div>
           )}
 
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <input
               ref={inputRef}
               value={input}
@@ -310,7 +270,8 @@ export function PiChatView() {
               }}
               placeholder="自然语言，或 / 调用 Pack…"
               style={{
-                flex: 1,
+                width: '100%',
+                boxSizing: 'border-box',
                 border: '1px solid var(--border)',
                 borderRadius: 10,
                 padding: '10px 12px',
@@ -321,16 +282,58 @@ export function PiChatView() {
                 outline: 'none',
               }}
             />
-            <button
-              type="button"
-              className="btn primary"
-              disabled={busy || !input.trim()}
-              onClick={() => send()}
-              style={{ opacity: busy || !input.trim() ? 0.5 : 1 }}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+              }}
             >
-              <Send style={{ width: 14, height: 14 }} />
-              发送
-            </button>
+              <select
+                value={model}
+                onChange={(e) => {
+                  setModel(e.target.value)
+                  toast(e.target.value)
+                }}
+                onClick={(e) => e.stopPropagation()}
+                aria-label="组合模型或 Pack"
+                title="组合模型 / Pack"
+                style={{
+                  flex: 1,
+                  minWidth: 0,
+                  maxWidth: 320,
+                  border: '1px solid var(--border)',
+                  background: 'var(--bg-subtle)',
+                  borderRadius: 8,
+                  font: 'inherit',
+                  fontSize: 12.5,
+                  padding: '7px 10px',
+                  color: 'var(--fg-1)',
+                }}
+              >
+                {!COMPOSITE_OPTIONS.includes(model) && (
+                  <option value={model}>{model}</option>
+                )}
+                {COMPOSITE_OPTIONS.map((o) => (
+                  <option key={o} value={o}>
+                    {o}
+                  </option>
+                ))}
+              </select>
+              <span className="muted" style={{ fontSize: 11.5, marginRight: 'auto' }}>
+                / Pack
+              </span>
+              <button
+                type="button"
+                className="btn primary"
+                disabled={busy || !input.trim()}
+                onClick={() => send()}
+                style={{ opacity: busy || !input.trim() ? 0.5 : 1, flex: 'none' }}
+              >
+                <Send style={{ width: 14, height: 14 }} />
+                发送
+              </button>
+            </div>
           </div>
         </div>
       </div>
