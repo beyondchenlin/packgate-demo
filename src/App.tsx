@@ -16,24 +16,18 @@ function DesktopApp() {
   const [nav, setNav] = useState<NavId>('routing')
   const [gatewayOn, setGatewayOn] = useState(true)
   const [agent, setAgent] = useState<AgentId>('claude-code')
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark')
+  const [theme, setTheme] = useState<'dark' | 'light'>('light')
   const [lang, setLang] = useState<'zh' | 'en'>('zh')
 
   return (
     <div
-      className="desktop-bg relative flex h-full min-h-screen w-full items-center justify-center overflow-hidden p-4 sm:p-8"
-      style={
-        theme === 'light'
-          ? {
-              background:
-                'radial-gradient(ellipse 80% 60% at 30% 20%, rgba(148,163,184,0.35), transparent 55%), linear-gradient(160deg, #e2e8f0, #f1f5f9 50%, #cbd5e1)',
-            }
-          : undefined
-      }
+      className={`desktop-bg relative flex h-full min-h-screen w-full items-center justify-center overflow-hidden p-5 sm:p-10 ${
+        theme === 'dark' ? 'theme-dark' : ''
+      }`}
     >
       <div
-        className="window-shadow relative flex w-[min(920px,85vw)] flex-col overflow-hidden rounded-xl bg-white"
-        style={{ height: 'min(640px, 78vh)' }}
+        className="window-shell relative flex w-[min(940px,88vw)] flex-col"
+        style={{ height: 'min(660px, 80vh)' }}
       >
         <TitleBar
           gatewayOn={gatewayOn}
@@ -66,17 +60,23 @@ function DesktopApp() {
               )
             }}
           />
-          <main className="min-w-0 flex-1 bg-white">
-            {!gatewayOn && nav === 'routing' && (
-              <div className="border-b border-amber-200 bg-amber-50 px-4 py-1.5 text-[11px] text-amber-800">
-                网关已关闭 — Demo 仍可浏览界面；正式版将拒绝代理请求。
+          <main className="min-w-0 flex-1 bg-[#fafafa]">
+            {!gatewayOn && (nav === 'routing' || nav === 'providers') && (
+              <div className="border-b border-[#f3e6c8] bg-[#fffbeb] px-4 py-1.5 text-[11px] text-[#92400e]">
+                网关已关闭 — Demo 仍可浏览；正式版将拒绝代理请求。
               </div>
             )}
             {nav === 'routing' && <RoutingView agent={agent} />}
             {nav === 'composite' && <CompositeView />}
             {nav === 'packs' && <PackMarketView />}
             {nav === 'mcp' && <McpSkillsView />}
-            {nav === 'providers' && <ProvidersView />}
+            {nav === 'providers' && (
+              <ProvidersView
+                agent={agent}
+                onAgentChange={setAgent}
+                gatewayOn={gatewayOn}
+              />
+            )}
             {nav === 'usage' && <UsageView />}
             {nav === 'settings' && (
               <SettingsView
@@ -90,9 +90,13 @@ function DesktopApp() {
         </div>
       </div>
 
-      <div className="pointer-events-none absolute bottom-3 left-0 right-0 text-center text-[11px] text-white/40">
-        PackGate UI Demo · 非全屏桌面窗口示意
-        {lang === 'en' ? ' · EN labels partial' : ''}
+      <div
+        className={`pointer-events-none absolute bottom-3 left-0 right-0 text-center text-[11px] ${
+          theme === 'dark' ? 'text-white/35' : 'text-[#8a8a96]/80'
+        }`}
+      >
+        PackGate UI Demo · 对标 Magpie 路由 + CC Switch Provider
+        {lang === 'en' ? ' · EN partial' : ''}
       </div>
     </div>
   )

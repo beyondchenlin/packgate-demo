@@ -47,56 +47,76 @@ const INITIAL: Composite[] = [
   },
 ]
 
+function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={on}
+      onClick={onClick}
+      className={`toggle-track relative h-[18px] w-[32px] shrink-0 rounded-full ${
+        on ? 'bg-[#1a1a1c]' : 'bg-[#d8d8de]'
+      }`}
+    >
+      <span
+        className={`toggle-thumb absolute top-[2px] left-[2px] h-[14px] w-[14px] rounded-full bg-white shadow-sm ${
+          on ? 'translate-x-[14px]' : ''
+        }`}
+      />
+    </button>
+  )
+}
+
 export function CompositeView() {
   const { toast } = useToast()
   const [items, setItems] = useState(INITIAL)
 
   return (
-    <div className="h-full overflow-auto p-4">
-      <div className="mb-3 flex items-end justify-between">
+    <div className="view-fade h-full overflow-auto bg-[#fafafa] p-4">
+      <div className="mb-3.5 flex items-end justify-between">
         <div>
-          <h2 className="text-[15px] font-semibold text-slate-900">组合模型</h2>
-          <p className="mt-0.5 text-[12px] text-slate-500">
-            这些 model id 会出现在 Claude Code / Codex / WorkBuddy 的模型下拉中——抢的就是这个入口。
+          <h2 className="text-[14px] font-semibold tracking-tight text-[#1a1a1c]">组合模型</h2>
+          <p className="mt-0.5 text-[11.5px] text-[#8a8a96]">
+            这些 model id 会出现在 Agent 的模型下拉中。
           </p>
         </div>
         <button
           type="button"
           onClick={() => toast('Demo：新建组合模型')}
-          className="rounded-md bg-blue-600 px-2.5 py-1.5 text-[12px] font-medium text-white hover:bg-blue-700"
+          className="rounded-[6px] bg-[#1a1a1c] px-2.5 py-[5px] text-[11.5px] font-medium text-white hover:bg-[#333]"
         >
           新建
         </button>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+      <div className="overflow-hidden rounded-[12px] bg-white shadow-[0_0_0_0.5px_rgba(0,0,0,0.06)]">
         {items.map((item, i) => (
           <div
             key={item.id}
-            className={`flex items-center gap-3 px-4 py-3 ${
-              i < items.length - 1 ? 'border-b border-slate-100' : ''
+            className={`flex items-center gap-3 px-3.5 py-3 ${
+              i < items.length - 1 ? 'border-b border-[#f0f0f3]' : ''
             }`}
           >
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-[13px] font-semibold text-slate-900">{item.name}</span>
-                <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] text-slate-600">
+                <span className="text-[12.5px] font-semibold tracking-tight text-[#1a1a1c]">
+                  {item.name}
+                </span>
+                <code className="rounded-[4px] bg-[#f4f4f6] px-1.5 py-[1px] font-mono text-[10.5px] text-[#5c5c66]">
                   {item.modelId}
                 </code>
               </div>
-              <p className="mt-0.5 text-[12px] text-slate-500">{item.desc}</p>
+              <p className="mt-0.5 text-[11.5px] text-[#8a8a96]">{item.desc}</p>
             </div>
             <button
               type="button"
               onClick={() => toast(`Demo：编辑 ${item.modelId}`)}
-              className="rounded-md border border-slate-200 px-2 py-1 text-[11px] text-slate-600 hover:bg-slate-50"
+              className="rounded-[6px] bg-[#f4f4f6] px-2 py-[4px] text-[11px] text-[#5c5c66] hover:bg-[#ececef]"
             >
               编辑
             </button>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={item.enabled}
+            <Toggle
+              on={item.enabled}
               onClick={() => {
                 setItems((prev) =>
                   prev.map((x) =>
@@ -109,16 +129,7 @@ export function CompositeView() {
                     : `已启用 ${item.modelId}（可供 Agent 选择）`,
                 )
               }}
-              className={`relative h-5 w-9 shrink-0 rounded-full transition ${
-                item.enabled ? 'bg-blue-600' : 'bg-slate-300'
-              }`}
-            >
-              <span
-                className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow transition ${
-                  item.enabled ? 'translate-x-4' : ''
-                }`}
-              />
-            </button>
+            />
           </div>
         ))}
       </div>

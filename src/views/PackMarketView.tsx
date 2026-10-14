@@ -1,5 +1,15 @@
 import { useState } from 'react'
-import { Download, Check, Flame, Video, Mic, AudioLines, Globe, Film, Captions } from 'lucide-react'
+import {
+  Download,
+  Check,
+  Flame,
+  Video,
+  Mic,
+  AudioLines,
+  Globe,
+  Film,
+  Captions,
+} from 'lucide-react'
 import { useToast } from '../lib/toast'
 
 type Pack = {
@@ -94,67 +104,68 @@ export function PackMarketView() {
   }
 
   return (
-    <div className="h-full overflow-auto p-4">
-      <div className="mb-3 flex items-end justify-between gap-2">
+    <div className="view-fade h-full overflow-auto bg-[#fafafa] p-4">
+      <div className="mb-3.5 flex items-end justify-between gap-2">
         <div>
-          <h2 className="text-[15px] font-semibold text-slate-900">Pack 市场</h2>
-          <p className="mt-0.5 text-[12px] text-slate-500">
-            重型 Skill + MCP 预制包，按需下载、热加载。大厂已覆盖的轻能力不做，专攻本地难配场景。
+          <h2 className="text-[14px] font-semibold tracking-tight text-[#1a1a1c]">
+            Pack 市场
+          </h2>
+          <p className="mt-0.5 text-[11.5px] leading-relaxed text-[#8a8a96]">
+            重型 Skill + MCP 预制包，按需下载、热加载。
           </p>
         </div>
         <button
           type="button"
           onClick={() => toast('Demo：刷新市场目录')}
-          className="rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-[12px] text-slate-600 hover:bg-slate-50"
+          className="rounded-[6px] bg-white px-2.5 py-[5px] text-[11.5px] text-[#5c5c66] shadow-[0_0_0_0.5px_rgba(0,0,0,0.08)] hover:bg-[#f7f7f8]"
         >
           刷新
         </button>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
         {packs.map((p) => {
           const Icon = ICONS[p.icon]
           return (
-            <div
-              key={p.id}
-              className="flex flex-col rounded-xl border border-slate-200 bg-white p-3.5 shadow-sm"
-            >
+            <div key={p.id} className="card-lift flex flex-col rounded-[12px] bg-white p-3.5">
               <div className="flex items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-                  <Icon className="h-5 w-5" />
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-[#f4f4f6] text-[#3a3a42]">
+                  <Icon className="h-4 w-4" strokeWidth={1.75} />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <h3 className="text-[13px] font-semibold text-slate-900">{p.name}</h3>
+                    <h3 className="text-[12.5px] font-semibold tracking-tight text-[#1a1a1c]">
+                      {p.name}
+                    </h3>
                     {p.hot && (
-                      <span className="inline-flex items-center gap-0.5 rounded-full bg-orange-50 px-1.5 py-0.5 text-[10px] font-medium text-orange-600">
-                        <Flame className="h-3 w-3" />
+                      <span className="inline-flex items-center gap-0.5 rounded-full bg-[#fff7ed] px-1.5 py-[1px] text-[9.5px] font-medium text-[#c2410c]">
+                        <Flame className="h-2.5 w-2.5" strokeWidth={2} />
                         热加载
                       </span>
                     )}
                   </div>
-                  <p className="mt-1 text-[12px] leading-relaxed text-slate-500">{p.desc}</p>
-                  <div className="mt-2 text-[11px] text-slate-400">{p.size}</div>
+                  <p className="mt-1 text-[11.5px] leading-relaxed text-[#8a8a96]">{p.desc}</p>
+                  <div className="mt-1.5 text-[10.5px] tabular-nums text-[#b0b0ba]">{p.size}</div>
                 </div>
               </div>
               <div className="mt-3 flex justify-end">
                 <button
                   type="button"
                   onClick={() => toggle(p.id)}
-                  className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-medium transition ${
+                  className={`inline-flex items-center gap-1.5 rounded-[6px] px-2.5 py-[5px] text-[11.5px] font-medium transition-colors ${
                     p.installed
-                      ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 hover:bg-emerald-100'
-                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                      ? 'bg-[#eef8f2] text-[#1f7a4a]'
+                      : 'bg-[#1a1a1c] text-white hover:bg-[#333]'
                   }`}
                 >
                   {p.installed ? (
                     <>
-                      <Check className="h-3.5 w-3.5" />
+                      <Check className="h-3 w-3" strokeWidth={2.25} />
                       已安装
                     </>
                   ) : (
                     <>
-                      <Download className="h-3.5 w-3.5" />
+                      <Download className="h-3 w-3" strokeWidth={2} />
                       安装
                     </>
                   )}

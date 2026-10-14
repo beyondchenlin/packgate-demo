@@ -18,15 +18,15 @@ export function SettingsView({
   const [preferAgentLlm, setPreferAgentLlm] = useState(true)
 
   return (
-    <div className="h-full overflow-auto p-4">
-      <h2 className="text-[15px] font-semibold text-slate-900">设置</h2>
-      <p className="mt-0.5 mb-4 text-[12px] text-slate-500">
+    <div className="view-fade h-full overflow-auto bg-[#fafafa] p-4">
+      <h2 className="text-[14px] font-semibold tracking-tight text-[#1a1a1c]">设置</h2>
+      <p className="mt-0.5 mb-3.5 text-[11.5px] text-[#8a8a96]">
         Demo 配置仅存于浏览器内存，刷新后重置。
       </p>
 
-      <div className="space-y-3">
+      <div className="space-y-2.5">
         <Row label="语言" hint="界面语言">
-          <div className="flex gap-1 rounded-lg bg-slate-100 p-0.5">
+          <div className="seg-track flex gap-0">
             {(
               [
                 { id: 'zh' as const, label: '简体中文' },
@@ -36,12 +36,13 @@ export function SettingsView({
               <button
                 key={o.id}
                 type="button"
+                data-active={lang === o.id}
                 onClick={() => {
                   onLangChange(o.id)
                   toast(o.id === 'zh' ? '已切换为简体中文' : 'Switched to English (partial)')
                 }}
-                className={`rounded-md px-2.5 py-1 text-[12px] font-medium ${
-                  lang === o.id ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'
+                className={`seg-item rounded-[6px] px-2.5 py-[5px] text-[11.5px] ${
+                  lang === o.id ? 'font-medium text-[#1a1a1c]' : 'text-[#6b6b76]'
                 }`}
               >
                 {o.label}
@@ -50,8 +51,8 @@ export function SettingsView({
           </div>
         </Row>
 
-        <Row label="主题" hint="窗口内容区偏浅，外壳跟随桌面">
-          <div className="flex gap-1 rounded-lg bg-slate-100 p-0.5">
+        <Row label="主题" hint="桌面外壳">
+          <div className="seg-track flex gap-0">
             {(
               [
                 { id: 'dark' as const, label: '深色外壳' },
@@ -61,12 +62,13 @@ export function SettingsView({
               <button
                 key={o.id}
                 type="button"
+                data-active={theme === o.id}
                 onClick={() => {
                   onThemeChange(o.id)
                   toast(o.id === 'dark' ? '深色桌面外壳' : '浅色桌面外壳')
                 }}
-                className={`rounded-md px-2.5 py-1 text-[12px] font-medium ${
-                  theme === o.id ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'
+                className={`seg-item rounded-[6px] px-2.5 py-[5px] text-[11.5px] ${
+                  theme === o.id ? 'font-medium text-[#1a1a1c]' : 'text-[#6b6b76]'
                 }`}
               >
                 {o.label}
@@ -75,17 +77,17 @@ export function SettingsView({
           </div>
         </Row>
 
-        <Row label="网关端口" hint="默认 3425（对标 Magpie）">
+        <Row label="网关端口" hint="默认 3425">
           <div className="flex items-center gap-2">
             <input
               value={port}
               onChange={(e) => setPort(e.target.value)}
-              className="w-24 rounded-md border border-slate-200 px-2 py-1 font-mono text-[12px] text-slate-800 outline-none focus:border-blue-400"
+              className="w-20 rounded-[6px] border border-[#e2e2e8] bg-white px-2 py-[4px] font-mono text-[12px] text-[#1a1a1c] outline-none focus:border-[#2f6fed]"
             />
             <button
               type="button"
               onClick={() => toast(`Demo：网关端口设为 ${port}`)}
-              className="rounded-md border border-slate-200 px-2.5 py-1 text-[12px] text-slate-600 hover:bg-slate-50"
+              className="rounded-[6px] bg-[#f4f4f6] px-2.5 py-[4px] text-[11.5px] text-[#5c5c66] hover:bg-[#ececef]"
             >
               应用
             </button>
@@ -94,7 +96,7 @@ export function SettingsView({
 
         <Row
           label="无云模型时优先 Agent 自带 LLM"
-          hint="后台未配置云 LLM 时，对话/推理走 WorkBuddy、Claude Code、Codex 等自带额度"
+          hint="后台未配置云 LLM 时，走入口 Agent 自带额度"
         >
           <button
             type="button"
@@ -108,38 +110,40 @@ export function SettingsView({
                   : '已开启：无云模型时优先 Agent 自带 LLM',
               )
             }}
-            className={`relative h-5 w-9 shrink-0 rounded-full transition ${
-              preferAgentLlm ? 'bg-blue-600' : 'bg-slate-300'
+            className={`toggle-track relative h-[18px] w-[32px] shrink-0 rounded-full ${
+              preferAgentLlm ? 'bg-[#1a1a1c]' : 'bg-[#d8d8de]'
             }`}
           >
             <span
-              className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow transition ${
-                preferAgentLlm ? 'translate-x-4' : ''
+              className={`toggle-thumb absolute top-[2px] left-[2px] h-[14px] w-[14px] rounded-full bg-white shadow-sm ${
+                preferAgentLlm ? 'translate-x-[14px]' : ''
               }`}
             />
           </button>
         </Row>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <div className="text-[13px] font-semibold text-slate-900">关于 PackGate</div>
-          <p className="mt-1 text-[12px] leading-relaxed text-slate-500">
-            本地统一网关 Demo：抢 Agent「选模型」入口，背后是可热加载的重型 Skill+MCP Pack（TTS /
-            ASR / 剪辑 / Remotion / ReachFlow…）。主程序拟 MIT；ComfyUI 等 GPL 仅作 sidecar。
+        <div className="rounded-[12px] bg-white p-4 shadow-[0_0_0_0.5px_rgba(0,0,0,0.06)]">
+          <div className="text-[12.5px] font-semibold tracking-tight text-[#1a1a1c]">
+            关于 PackGate
+          </div>
+          <p className="mt-1 text-[11.5px] leading-relaxed text-[#8a8a96]">
+            本地统一网关 Demo：在 CC Switch + Magpie 交互语法上抢 Agent「选模型」入口，背后是可热加载的重型
+            Skill+MCP Pack。主程序拟 MIT。
           </p>
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="mt-2.5 flex flex-wrap gap-1.5">
             <button
               type="button"
               onClick={() => toast('License: MIT')}
-              className="rounded-md bg-slate-900 px-2.5 py-1 text-[11px] text-white"
+              className="rounded-[6px] bg-[#1a1a1c] px-2.5 py-[4px] text-[11px] text-white"
             >
               MIT License
             </button>
             <button
               type="button"
-              onClick={() => toast('版本 0.1.0-demo')}
-              className="rounded-md border border-slate-200 px-2.5 py-1 text-[11px] text-slate-600"
+              onClick={() => toast('版本 0.1.1-demo')}
+              className="rounded-[6px] bg-[#f4f4f6] px-2.5 py-[4px] text-[11px] text-[#5c5c66]"
             >
-              v0.1.0-demo
+              v0.1.1-demo
             </button>
           </div>
         </div>
@@ -158,10 +162,10 @@ function Row({
   children: ReactNode
 }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3">
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-[12px] bg-white px-3.5 py-3 shadow-[0_0_0_0.5px_rgba(0,0,0,0.06)]">
       <div className="min-w-0">
-        <div className="text-[13px] font-medium text-slate-900">{label}</div>
-        <div className="text-[11px] text-slate-400">{hint}</div>
+        <div className="text-[12.5px] font-medium tracking-tight text-[#1a1a1c]">{label}</div>
+        <div className="text-[10.5px] text-[#9c9ca8]">{hint}</div>
       </div>
       {children}
     </div>
