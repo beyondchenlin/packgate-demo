@@ -1,42 +1,68 @@
-import { useState } from 'react'
+import { APPS, type AgentId } from '../lib/types'
 import { useToast } from '../lib/toast'
 
-export function AppsView() {
+export function AppsView({
+  activeId,
+  onOpen,
+}: {
+  activeId: AgentId
+  onOpen: (id: AgentId) => void
+}) {
   const { toast } = useToast()
-  const [rows, setRows] = useState([
-    { id: '1', name: 'Claude Code', ver: '2.1.4', vis: true },
-    { id: '2', name: 'Codex', ver: '0.48.0', vis: true },
-    { id: '3', name: 'WorkBuddy', ver: '1.0.2', vis: true },
-    { id: '4', name: 'OpenCode', ver: '未安装', vis: false },
-  ])
   return (
     <div className="content">
-      <div className="toolbar" style={{padding:0,marginBottom:10}}>
-        <div className="spacer" />
-        <button type="button" className="btn" onClick={() => toast('全部升级')}>全部升级</button>
-      </div>
+      <p className="muted" style={{ margin: '0 0 12px', fontSize: 12.5 }}>
+        应用列表已从侧栏收纳到此。点选进入对应供应商与路由配置。
+      </p>
       <div className="list-card">
-        {rows.map((a) => (
-          <div key={a.id} className="list-row">
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 560 }}>{a.name}</div>
-              <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>{a.ver}</div>
-            </div>
-            <button
-              type="button"
-              className="btn ghost"
-              onClick={() => {
-                setRows((xs) => xs.map((x) => (x.id === a.id ? { ...x, vis: !x.vis } : x)))
-                toast(a.vis ? '已隐藏' : '已显示')
+        {APPS.map((a) => (
+          <button
+            key={a.id}
+            type="button"
+            className="list-row"
+            style={{
+              width: '100%',
+              border: 0,
+              background: a.id === activeId ? 'var(--action-soft)' : 'transparent',
+              cursor: 'default',
+              textAlign: 'left',
+            }}
+            onClick={() => onOpen(a.id)}
+          >
+            <span
+              style={{
+                width: 10,
+                height: 10,
+                borderRadius: 99,
+                background: a.color,
+                flex: 'none',
               }}
-            >
-              {a.vis ? '显示中' : '已隐藏'}
-            </button>
-            <button type="button" className="btn" onClick={() => toast(a.ver === '未安装' ? '安装' : '升级')}>
-              {a.ver === '未安装' ? '安装' : '升级'}
-            </button>
-          </div>
+            />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontWeight: 560 }}>{a.label}</div>
+              <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>
+                供应商 · MCP · Skills
+              </div>
+            </div>
+            {a.id === activeId && (
+              <span className="muted" style={{ fontSize: 11.5 }}>
+                当前
+              </span>
+            )}
+            <span className="btn ghost" style={{ pointerEvents: 'none' }}>
+              打开
+            </span>
+          </button>
         ))}
+      </div>
+      <div style={{ marginTop: 12 }}>
+        <button
+          type="button"
+          className="btn"
+          onClick={() => toast('安装应用（Demo）')}
+        >
+          安装应用
+        </button>
       </div>
     </div>
   )

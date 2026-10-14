@@ -148,33 +148,6 @@ function Shell() {
               })}
             </div>
 
-            
-
-            <div className="sb-group">应用</div>
-            {APPS.map((a) => (
-              <button
-                key={a.id}
-                type="button"
-                className="sb-item"
-                data-on={nav === 'providers' && app === a.id}
-                onClick={() => {
-                  setApp(a.id)
-                  setNav('providers')
-                  toast(a.label)
-                }}
-              >
-                <span
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: 99,
-                    background: a.color,
-                    flex: 'none',
-                  }}
-                />
-                {a.label}
-              </button>
-            ))}
 
             <div className="sb-group">扩展</div>
             {EXTRA_NAV.map((item) => {
@@ -309,7 +282,16 @@ function Shell() {
             {nav === 'sessions' && <SessionsView />}
             {nav === 'auth' && <AuthView />}
             {nav === 'usage' && <UsageView />}
-            {nav === 'apps' && <AppsView />}
+            {nav === 'apps' && (
+              <AppsView
+                activeId={app}
+                onOpen={(id) => {
+                  setApp(id)
+                  setNav('providers')
+                  toast(APPS.find((x) => x.id === id)?.label ?? id)
+                }}
+              />
+            )}
             {nav === 'gateway' && <GatewayView on={proxyOn} />}
             {nav === 'plugins' && <PluginsView />}
             {nav === 'library' && <LibraryView />}
